@@ -25,6 +25,7 @@ const zh: Record<string, string> = {
   "So I didn’t stop sending lamps — I started teaching the kids to make videos instead. Not another tool for them to use once. A way to be seen, on their own terms, again and again.":
     "于是我没有停止送灯，而是开始教山里的孩子拍视频、做自媒体。这不再是一件用完即弃的工具，而是一种能让他们被看见的方式——一次又一次，以自己的方式。",
   "Photo — Irina holding the first printed lamp": "照片 — Irina 手持第一盏打印的灯",
+  "One lamp at a time, the walk home got safer.": "一盏一盏地，回家的路，变得更安全了。",
 
   // Act II — Building Bridges
   "Shared Light": "共光",

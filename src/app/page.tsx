@@ -2,6 +2,7 @@ import { SiteNav } from "@/components/site-nav";
 import { ScrollLightLine } from "@/components/scroll-light-line";
 import { LightBeamHero } from "@/components/light-beam-hero";
 import { ActSection } from "@/components/act-section";
+import { VillageScene } from "@/components/village-scene";
 import { Epilogue } from "@/components/epilogue";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -28,7 +29,10 @@ export default function Home() {
           ]}
         />
 
+        <VillageScene />
+
         <ActSection
+          id="act-ii"
           numeral="II"
           label="Shared Light"
           title="Building Bridges"
@@ -42,6 +46,7 @@ export default function Home() {
         />
 
         <ActSection
+          id="act-iii"
           numeral="III"
           label="Lasting Light"
           title="The Inner Light"

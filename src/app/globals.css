@@ -16,6 +16,14 @@
   --color-dusk-deep: #0b0906;
   --color-dusk-ink: #f3e6d2;
 
+  /* Night-village illustration */
+  --color-night-sky: #1c1f3d;
+  --color-night-sky-deep: #0a0b1a;
+  --color-mountain-far: #262a4f;
+  --color-mountain-near: #171933;
+  --color-roof: #0f1128;
+  --color-path: #3a3660;
+
   --font-display: var(--font-fraunces);
   --font-body: var(--font-newsreader);
   --font-hand: var(--font-caveat);
@@ -32,6 +40,13 @@
   --color-dusk: var(--color-dusk);
   --color-dusk-deep: var(--color-dusk-deep);
   --color-dusk-ink: var(--color-dusk-ink);
+
+  --color-night-sky: var(--color-night-sky);
+  --color-night-sky-deep: var(--color-night-sky-deep);
+  --color-mountain-far: var(--color-mountain-far);
+  --color-mountain-near: var(--color-mountain-near);
+  --color-roof: var(--color-roof);
+  --color-path: var(--color-path);
 
   --font-display: var(--font-display);
   --font-body: var(--font-body);
