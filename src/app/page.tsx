@@ -1,69 +1,62 @@
-import Image from "next/image";
+import { SiteNav } from "@/components/site-nav";
+import { ScrollLightLine } from "@/components/scroll-light-line";
+import { LightBeamHero } from "@/components/light-beam-hero";
+import { ActSection } from "@/components/act-section";
+import { Epilogue } from "@/components/epilogue";
+import { SiteFooter } from "@/components/site-footer";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <>
+      <SiteNav />
+      <ScrollLightLine />
+      <main>
+        <LightBeamHero />
+
+        <ActSection
+          id="act-i"
+          numeral="I"
+          label="First Light"
+          title="A Naive Beginning"
+          imageSide="right"
+          photoCaption="Photo — Irina holding the first printed lamp"
+          paragraphs={[
+            "I printed my first lamp out of a discarded plastic bottle. I sold it, and used the money to buy headlamps for children in the mountains of Sichuan’s Liangshan — so they could see the road to school in the dark. I thought the job was done.",
+            "Later I learned the headlamps weren’t on the road at all. They were hanging by the stove, lighting the cooking.",
+            "I had thought I was giving light. What they needed was to be seen.",
+            "So I didn’t stop sending lamps — I started teaching the kids to make videos instead. Not another tool for them to use once. A way to be seen, on their own terms, again and again.",
+          ]}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+        <ActSection
+          numeral="II"
+          label="Shared Light"
+          title="Building Bridges"
+          imageSide="left"
+          photoCaption="Photo — Irina speaking at a YVA event"
+          paragraphs={[
+            "One lamp can only light one person. A community can light a city.",
+            "I started the Youth Venture Alliance. No family name behind me, no head start — just enough stubbornness to connect a thousand high school founders who wanted to build something that mattered.",
+            "I stopped being a single point of light. I became a wire — carrying whatever I had toward whoever had an idea worth it.",
+          ]}
+        />
+
+        <ActSection
+          numeral="III"
+          label="Lasting Light"
+          title="The Inner Light"
+          imageSide="right"
+          photoCaption="Photo — books laid flat, or a Light Talks recording session"
+          paragraphs={[
+            "A lamp burns out. A trend passes. A thought doesn’t.",
+            "I wrote about animal rights for the John Locke Institute. I researched green business through IPQ. And I renamed the interview show I ran — once just called 17 Interviews — to Light Talks, because I realized what I actually wanted was for two people’s thinking to strike against each other and catch.",
+            "Not for the views. For the record of what business could be, if it meant well.",
+          ]}
+        />
+
+        <Epilogue />
       </main>
-    </div>
+      <SiteFooter />
+    </>
   );
 }
