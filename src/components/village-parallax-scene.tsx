@@ -216,7 +216,7 @@ export function VillageParallaxScene() {
           scrollY={assembleY(0, -6)}
           pointerAmp={[6, 3]}
         >
-          <Image src="/images/parallax-mountains.png" alt="" width={1264} height={848} className="h-auto w-full" priority />
+          <Image src="/images/parallax-mountains.png" alt="" width={1264} height={694} className="h-auto w-full" priority />
         </Layer>
 
         {/* clouds-back — small, numerous, passive drift always running,
@@ -237,8 +237,8 @@ export function VillageParallaxScene() {
             }}
           >
             <div className={reduceMotion ? "flex w-max" : "cloud-drift-track"} style={reduceMotion ? undefined : { animation: "cloud-drift 70s linear infinite" }}>
-              <Image src="/images/parallax-clouds-back.png" alt="" width={1264} height={848} className="h-auto w-[75vw] max-w-none sm:w-[55vw]" />
-              <Image src="/images/parallax-clouds-back.png" alt="" width={1264} height={848} className="h-auto w-[75vw] max-w-none sm:w-[55vw]" aria-hidden />
+              <Image src="/images/parallax-clouds-back.png" alt="" width={1201} height={205} className="h-auto w-[130vw] max-w-none sm:w-[110vw]" />
+              <Image src="/images/parallax-clouds-back.png" alt="" width={1201} height={205} className="h-auto w-[130vw] max-w-none sm:w-[110vw]" aria-hidden />
             </div>
           </div>
         </div>
@@ -254,7 +254,7 @@ export function VillageParallaxScene() {
           scrollY={assembleY(0, -14)}
           pointerAmp={[10, 5]}
         >
-          <Image src="/images/parallax-hills-village.png" alt="" width={1264} height={848} className="h-auto w-full" />
+          <Image src="/images/parallax-hills-village.png" alt="" width={977} height={675} className="h-auto w-full" />
         </Layer>
 
         {/* clouds-front — large, passive drift, glides in from a side on
@@ -275,8 +275,8 @@ export function VillageParallaxScene() {
             }}
           >
             <div className={reduceMotion ? "flex w-max" : "cloud-drift-track"} style={reduceMotion ? undefined : { animation: "cloud-drift 46s linear infinite reverse" }}>
-              <Image src="/images/parallax-clouds-front.png" alt="" width={1264} height={848} className="h-auto w-[95vw] max-w-none sm:w-[65vw]" />
-              <Image src="/images/parallax-clouds-front.png" alt="" width={1264} height={848} className="h-auto w-[95vw] max-w-none sm:w-[65vw]" aria-hidden />
+              <Image src="/images/parallax-clouds-front.png" alt="" width={1264} height={385} className="h-auto w-[130vw] max-w-none sm:w-[90vw]" />
+              <Image src="/images/parallax-clouds-front.png" alt="" width={1264} height={385} className="h-auto w-[130vw] max-w-none sm:w-[90vw]" aria-hidden />
             </div>
           </div>
         </div>
@@ -290,7 +290,7 @@ export function VillageParallaxScene() {
               transform: `translate3d(${pointer(14, 0).x}, calc(${assembleY(62, 0)} + ${pointer(14, 0).y}), 0)`,
             }}
           >
-            <Image src="/images/parallax-main-village.png" alt="" width={1264} height={848} className="h-auto w-full" />
+            <Image src="/images/parallax-main-village.png" alt="" width={1243} height={755} className="h-auto w-full" />
           </div>
         </div>
 
