@@ -226,23 +226,8 @@ body {
   animation: lamp-breathe 3.2s ease-in-out infinite;
 }
 
-/* Passive cloud drift — independent of scroll, always running. Same
-   duplicate-content/-50% technique as the old marquee, just applied
-   horizontally to a wider sprite sheet so the loop has no seam. Two
-   speeds (back layer slower/smaller, front layer faster/larger) read as
-   depth on their own, before any scroll or pointer input. */
-@keyframes cloud-drift {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-.cloud-drift-track {
-  display: flex;
-  width: max-content;
-  will-change: transform;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow, .cloud-drift-track {
+  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow {
     animation: none;
   }
 }

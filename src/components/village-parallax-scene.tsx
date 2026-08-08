@@ -18,7 +18,10 @@ function phaseT(start: number, end: number): string {
 }
 
 // Vertical-only scroll parallax: travels from fromVh to toVh during phase
-// A, then holds — this is what "locks in place" for phase B/C.
+// A, then holds — this is what "locks in place" for phase B/C. The
+// distance each layer travels is deliberately very different back-to-
+// front (mountains barely move, the river travels furthest) so the
+// assembly itself reads as a drop in altitude, not just layers sliding in.
 function assembleY(fromVh: number, toVh: number): string {
   const t = phaseT(0, PHASE_A_END);
   return `calc((${fromVh} + (${toVh - fromVh}) * ${t}) * 1vh)`;
@@ -49,6 +52,12 @@ interface LayerProps {
   delayMs: number;
   scrollY: string;
   pointerAmp: [number, number];
+  /** Extra oversize (as a scale factor) so pointer parallax can never
+   * expose the stage background. Only meaningful for full-bleed,
+   * left-0/w-full layers — a centered layer's own side margins already
+   * exceed its (small) pointer amplitude, and scaling a *centered*
+   * transform breaks the centering math, so those pass 1 (off). */
+  scaleBuffer?: number;
   children: React.ReactNode;
 }
 
@@ -56,7 +65,7 @@ interface LayerProps {
 // CSS-transitioned mount entrance (different per layer: slide, grow,
 // glide from a side); the INNER one carries scroll + pointer position
 // with no transition at all, so it tracks input immediately.
-function Layer({ entered, z, className, entranceStyle, enteredStyle, delayMs, scrollY, pointerAmp, children }: LayerProps) {
+function Layer({ entered, z, className, entranceStyle, enteredStyle, delayMs, scrollY, pointerAmp, scaleBuffer = 1, children }: LayerProps) {
   const p = pointer(...pointerAmp);
   return (
     <div
@@ -69,7 +78,63 @@ function Layer({ entered, z, className, entranceStyle, enteredStyle, delayMs, sc
         transitionDelay: `${delayMs}ms`,
       }}
     >
-      <div style={{ transform: `translate3d(${p.x}, calc(${scrollY} + ${p.y}), 0)` }}>{children}</div>
+      <div
+        className={scaleBuffer !== 1 ? "origin-bottom" : undefined}
+        style={{
+          transform: `translate3d(${p.x}, calc(${scrollY} + ${p.y}), 0)${scaleBuffer !== 1 ? ` scale(${scaleBuffer})` : ""}`,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// A day image and a night image, same box, cross-fading on --scene-progress
+// via DAYNIGHT_T — never a hard cut, and never a size jump, because both
+// share one fixed aspect-ratio box and both use object-contain.
+function DayNightPair({
+  day,
+  night,
+  dayDims,
+  nightDims,
+  aspect,
+  priority,
+  dropShadow,
+}: {
+  day: string;
+  night: string;
+  dayDims: [number, number];
+  nightDims: [number, number];
+  aspect: string;
+  priority?: boolean;
+  /** Two-layer soft shadow so a detailed, similarly-toned cutout (the
+   * hillside village) still reads as sitting in FRONT of an equally
+   * detailed layer behind it (the mountains), instead of fusing with it. */
+  dropShadow?: boolean;
+}) {
+  return (
+    <div
+      className={`relative w-full ${aspect}`}
+      style={dropShadow ? { filter: "drop-shadow(0 22px 32px rgba(20,14,4,0.4)) drop-shadow(0 6px 12px rgba(20,14,4,0.3))" } : undefined}
+    >
+      <Image
+        src={day}
+        alt=""
+        width={dayDims[0]}
+        height={dayDims[1]}
+        className="absolute inset-0 h-full w-full object-contain object-bottom"
+        style={{ opacity: `calc(1 - ${DAYNIGHT_T})` }}
+        priority={priority}
+      />
+      <Image
+        src={night}
+        alt=""
+        width={nightDims[0]}
+        height={nightDims[1]}
+        className="absolute inset-0 h-full w-full object-contain object-bottom"
+        style={{ opacity: DAYNIGHT_T }}
+      />
     </div>
   );
 }
@@ -80,9 +145,9 @@ export function VillageParallaxScene() {
   const reduceMotion = useReducedMotion();
   const [entered, setEntered] = useState(false);
 
-  // Scroll -> --scene-progress, written straight to the DOM (see
-  // hero-scene.tsx for why: useScroll's own tracking didn't update
-  // reliably in testing, this plain listener does).
+  // Scroll -> --scene-progress (+ eased --sun-t/--moon-t derived from it),
+  // written straight to the DOM: a plain listener proved far more
+  // reliable in testing than useScroll's own tracking.
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -91,7 +156,16 @@ export function VillageParallaxScene() {
       const rect = track.getBoundingClientRect();
       const total = rect.height - window.innerHeight;
       const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      const daynightT = Math.min(1, Math.max(0, (progress - PHASE_A_END) / (PHASE_B_END - PHASE_A_END)));
+      // Sun dips with an ease-IN (starts slow, accelerates down and out of
+      // view); moon rises with an ease-OUT (starts fast, decelerates into
+      // place) — reversible for free since both are pure functions of
+      // scroll position, not stateful velocity.
+      const sunT = daynightT * daynightT;
+      const moonT = 1 - (1 - daynightT) * (1 - daynightT);
       track.style.setProperty("--scene-progress", progress.toString());
+      track.style.setProperty("--sun-t", sunT.toString());
+      track.style.setProperty("--moon-t", moonT.toString());
       raf = 0;
     };
     const onScroll = () => {
@@ -165,6 +239,15 @@ export function VillageParallaxScene() {
   const off = (px: number): React.CSSProperties => ({ opacity: 0, transform: `translateY(${px}px)` });
   const on: React.CSSProperties = { opacity: 1, transform: "translateY(0)" };
 
+  // Sun travels from a high point down to the horizon (tucking behind the
+  // mountains layer, which sits at a higher z-index); the moon travels the
+  // same span in reverse. Opacity fades a touch ahead of position so
+  // neither one visibly clips in a gap between peaks.
+  const SUN_TOP_VH = 9;
+  const SUN_HORIZON_VH = 52;
+  const sunTop = `calc(${SUN_TOP_VH}vh + (${SUN_HORIZON_VH - SUN_TOP_VH}vh) * var(--sun-t, 0))`;
+  const moonTop = `calc(${SUN_HORIZON_VH}vh - (${SUN_HORIZON_VH - SUN_TOP_VH}vh) * var(--moon-t, 0))`;
+
   return (
     <div ref={trackRef} className="relative h-[420vh]" style={{ ["--scene-progress" as string]: "0" }}>
       <section
@@ -205,6 +288,34 @@ export function VillageParallaxScene() {
           ))}
         </div>
 
+        {/* sun — high and bright at rest, dips behind the mountains
+            (lower in the stack) with an accelerating ease-in */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-[66%] aspect-square w-[8vw] max-w-[104px] min-w-[52px] -translate-x-1/2"
+          style={{
+            zIndex: 1,
+            top: reduceMotion ? `${SUN_TOP_VH}vh` : sunTop,
+            opacity: reduceMotion ? 1 : `calc(1 - (var(--sun-t, 0) * 1.15))`,
+          }}
+        >
+          <Image src="/images/parallax-sun.png" alt="" fill sizes="8vw" className="object-contain" />
+        </div>
+
+        {/* moon — rises to the sun's start position with a decelerating
+            ease-out, exactly reversed when scrolling back up */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-[66%] aspect-square w-[7vw] max-w-[92px] min-w-[46px] -translate-x-1/2"
+          style={{
+            zIndex: 1,
+            top: reduceMotion ? `${SUN_HORIZON_VH}vh` : moonTop,
+            opacity: reduceMotion ? 0 : "var(--moon-t, 0)",
+          }}
+        >
+          <Image src="/images/parallax-moon.png" alt="" fill sizes="7vw" className="object-contain" />
+        </div>
+
         {/* mountains — farthest, barely moves, first to arrive */}
         <Layer
           entered={entered}
@@ -213,84 +324,60 @@ export function VillageParallaxScene() {
           entranceStyle={off(36)}
           enteredStyle={on}
           delayMs={0}
-          scrollY={assembleY(0, -6)}
-          pointerAmp={[6, 3]}
+          scrollY={assembleY(0, -3)}
+          pointerAmp={[4, 2]}
+          scaleBuffer={1.14}
         >
-          <Image src="/images/parallax-mountains.png" alt="" width={1264} height={694} className="h-auto w-full" priority />
+          <DayNightPair
+            day="/images/parallax-mountains-day.png"
+            night="/images/parallax-mountains-night.png"
+            dayDims={[1264, 800]}
+            nightDims={[1264, 694]}
+            aspect="aspect-[1264/800]"
+            priority
+          />
         </Layer>
 
-        {/* clouds-back — small, numerous, passive drift always running,
-            sits behind the arriving village so it's only seen through gaps */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 top-[8%] w-full overflow-hidden sm:top-[6%]"
-          style={{
-            zIndex: 3,
-            ...(entered ? { opacity: 0.8 } : { opacity: 0 }),
-            transition: "opacity 1s ease-out",
-            transitionDelay: "300ms",
-          }}
-        >
-          <div
-            style={{
-              transform: `translate3d(${pointer(9, 3).x}, calc(${assembleY(0, -10)} + ${pointer(9, 3).y}), 0)`,
-            }}
-          >
-            <div className={reduceMotion ? "flex w-max" : "cloud-drift-track"} style={reduceMotion ? undefined : { animation: "cloud-drift 70s linear infinite" }}>
-              <Image src="/images/parallax-clouds-back.png" alt="" width={1201} height={205} className="h-auto w-[130vw] max-w-none sm:w-[110vw]" />
-              <Image src="/images/parallax-clouds-back.png" alt="" width={1201} height={205} className="h-auto w-[130vw] max-w-none sm:w-[110vw]" aria-hidden />
-            </div>
-          </div>
-        </div>
-
-        {/* hills-village — small, distant, on the hill, grows into place */}
+        {/* hills-village — a large, clearly-bounded settlement sitting on
+            one hill, not the whole mountainside: wide enough to read as
+            a major feature (per the brief), but kept short of full-frame
+            so it doesn't visually fuse with the mountains behind it */}
         <Layer
           entered={entered}
-          z={4}
-          className="bottom-[18%] left-1/2 w-[46%] max-w-md -translate-x-1/2 sm:bottom-[22%]"
-          entranceStyle={{ opacity: 0, transform: "translateX(-50%) scale(0.85)" }}
-          enteredStyle={{ opacity: 1, transform: "translateX(-50%) scale(1)" }}
-          delayMs={220}
-          scrollY={assembleY(0, -14)}
-          pointerAmp={[10, 5]}
+          z={3}
+          className="bottom-[8%] left-[13%] right-[13%] sm:bottom-[10%]"
+          entranceStyle={{ opacity: 0, transform: "translateY(28px) scale(0.92)" }}
+          enteredStyle={{ opacity: 1, transform: "translateY(0) scale(1)" }}
+          delayMs={180}
+          scrollY={assembleY(0, -20)}
+          pointerAmp={[9, 4]}
         >
-          <Image src="/images/parallax-hills-village.png" alt="" width={977} height={675} className="h-auto w-full" />
+          <DayNightPair
+            day="/images/parallax-hills-village-day.png"
+            night="/images/parallax-hills-village-night.png"
+            dayDims={[1263, 794]}
+            nightDims={[1254, 776]}
+            aspect="aspect-[1263/794]"
+            dropShadow
+          />
         </Layer>
-
-        {/* clouds-front — large, passive drift, glides in from a side on
-            load, then exits upward off the top of the frame during phase A */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-0 top-[2%] w-full overflow-hidden"
-          style={{
-            zIndex: 5,
-            ...(entered ? { opacity: 1, transform: "translateX(0%)" } : { opacity: 0, transform: "translateX(-18%)" }),
-            transition: "opacity 1s ease-out, transform 1.2s var(--ease-snap)",
-            transitionDelay: "450ms",
-          }}
-        >
-          <div
-            style={{
-              transform: `translate3d(${pointer(16, 6).x}, calc(${assembleY(0, -75)} + ${pointer(16, 6).y}), 0)`,
-            }}
-          >
-            <div className={reduceMotion ? "flex w-max" : "cloud-drift-track"} style={reduceMotion ? undefined : { animation: "cloud-drift 46s linear infinite reverse" }}>
-              <Image src="/images/parallax-clouds-front.png" alt="" width={1264} height={385} className="h-auto w-[130vw] max-w-none sm:w-[90vw]" />
-              <Image src="/images/parallax-clouds-front.png" alt="" width={1264} height={385} className="h-auto w-[130vw] max-w-none sm:w-[90vw]" aria-hidden />
-            </div>
-          </div>
-        </div>
 
         {/* main village + streetlights — starts below the viewport, not
             visible at all on load; arrives by moving up during phase A,
             never by fading in */}
-        <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-full" style={{ zIndex: 6 }}>
+        <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-full" style={{ zIndex: 4 }}>
           <div
-            style={{
-              transform: `translate3d(${pointer(14, 0).x}, calc(${assembleY(62, 0)} + ${pointer(14, 0).y}), 0)`,
-            }}
+            className="origin-bottom scale-[1.14]"
+            style={{ transform: `translate3d(${pointer(20, 0).x}, calc(${assembleY(85, 0)} + ${pointer(20, 0).y}), 0)` }}
           >
-            <Image src="/images/parallax-main-village.png" alt="" width={1243} height={755} className="h-auto w-full" />
+            <DayNightPair
+              day="/images/parallax-main-village-day.png"
+              night="/images/parallax-main-village-night.png"
+              dayDims={[1259, 768]}
+              nightDims={[1243, 755]}
+              aspect="aspect-[1259/768]"
+              dropShadow
+            />
           </div>
         </div>
 
@@ -298,31 +385,48 @@ export function VillageParallaxScene() {
             fastest so it "catches up" to align with everything else. A
             slim cropped band, not the full source image, so it reads as
             a modest stream at the edge instead of dominating the frame. */}
-        <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-[13vh] w-full sm:h-[16vh]" style={{ zIndex: 7 }}>
+        <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-[13vh] w-full sm:h-[16vh]" style={{ zIndex: 5 }}>
           <div
-            className="relative h-full w-full"
+            className="origin-bottom scale-[1.14]"
             style={{
-              transform: `translate3d(${pointer(18, 0).x}, calc(${assembleY(85, 0)} + ${pointer(18, 0).y}), 0)`,
+              position: "relative",
+              height: "100%",
+              width: "100%",
+              transform: `translate3d(${pointer(26, 0).x}, calc(${assembleY(115, 0)} + ${pointer(26, 0).y}), 0)`,
             }}
           >
-            <Image src="/images/parallax-river.png" alt="" fill sizes="100vw" className="object-cover object-bottom" />
+            <Image
+              src="/images/parallax-river-day.png"
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover object-bottom"
+              style={{ opacity: `calc(1 - ${DAYNIGHT_T})` }}
+            />
+            <Image
+              src="/images/parallax-river-night.png"
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover object-bottom"
+              style={{ opacity: DAYNIGHT_T }}
+            />
           </div>
         </div>
 
-        {/* black wheatfield — off-screen below at rest, rises during
-            phase C to fully cover the scene */}
+        {/* black wheatfield — a short curtain rising from below at rest,
+            with the wheat itself sitting just above its leading edge (not
+            embedded near its base), so the silhouette reads as grass at
+            ground level with the night rising just behind it. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-black"
-          style={{ zIndex: 8, transform: `translateY(${reduceMotion ? "0%" : coverY()})` }}
+          className="pointer-events-none absolute inset-0"
+          style={{ zIndex: 6, transform: `translateY(${reduceMotion ? "0%" : coverY()})` }}
         >
-          <Image
-            src="/images/parallax-wheatfield.png"
-            alt=""
-            width={1264}
-            height={664}
-            className="absolute bottom-0 left-0 h-[40%] w-full object-cover object-top"
-          />
+          <div className="absolute bottom-[42vh] left-0 h-[20vh] w-full">
+            <Image src="/images/parallax-wheatfield.png" alt="" fill sizes="100vw" className="object-cover object-bottom" />
+          </div>
+          <div className="absolute bottom-0 left-0 h-[42vh] w-full bg-black" />
         </div>
       </section>
     </div>
