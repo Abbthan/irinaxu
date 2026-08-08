@@ -320,7 +320,7 @@ export function VillageParallaxScene() {
             src="/images/parallax-wheatfield.png"
             alt=""
             width={1264}
-            height={848}
+            height={664}
             className="absolute bottom-0 left-0 h-[40%] w-full object-cover object-top"
           />
         </div>
