@@ -3,19 +3,50 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { PhotoPlaceholder } from "./photo-placeholder";
 
+const STARS = [
+  { top: 10, left: 15, size: 1.5, dur: 4.6, delay: -0.7 },
+  { top: 6, left: 78, size: 1.5, dur: 3.9, delay: -2.4 },
+  { top: 18, left: 45, size: 1, dur: 5.1, delay: -1.3 },
+  { top: 26, left: 88, size: 1.5, dur: 4.2, delay: -3.1 },
+  { top: 14, left: 30, size: 1, dur: 3.6, delay: -0.4 },
+  { top: 30, left: 8, size: 1.5, dur: 4.8, delay: -2.8 },
+  { top: 8, left: 62, size: 1, dur: 5.4, delay: -1.7 },
+] as const;
+
 // Full circle back to the hero's dark register — the same warm dark the
-// story opened in, now with the story behind it.
+// story opened in, now with the story behind it. The stars are the same
+// technique as the hero, quietly signaling "we're back where we started."
 export function Epilogue() {
   const reduceMotion = useReducedMotion();
   const reveal = {
     initial: { opacity: 0, y: reduceMotion ? 0 : 18 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.4 },
-    transition: { duration: 0.9, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] as const },
   };
 
   return (
     <section className="relative overflow-hidden bg-dusk px-6 py-28 sm:px-10 sm:py-40">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        {STARS.map((s, i) => (
+          <span
+            key={i}
+            className={reduceMotion ? undefined : "star"}
+            style={{
+              position: "absolute",
+              top: `${s.top}%`,
+              left: `${s.left}%`,
+              width: `${s.size}px`,
+              height: `${s.size}px`,
+              borderRadius: "50%",
+              background: reduceMotion ? "var(--color-dusk-ink)" : undefined,
+              opacity: reduceMotion ? 0.5 : undefined,
+              animationDuration: reduceMotion ? undefined : `${s.dur}s`,
+              animationDelay: reduceMotion ? undefined : `${s.delay}s`,
+            }}
+          />
+        ))}
+      </div>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"

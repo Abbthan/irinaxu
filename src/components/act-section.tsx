@@ -11,6 +11,7 @@ interface ActSectionProps {
   title: string;
   paragraphs: string[];
   photoCaption: string;
+  photoSrc?: string;
   imageSide?: "left" | "right";
 }
 
@@ -21,20 +22,21 @@ export function ActSection({
   title,
   paragraphs,
   photoCaption,
+  photoSrc,
   imageSide = "right",
 }: ActSectionProps) {
   const reduceMotion = useReducedMotion();
   const reveal = {
-    initial: { opacity: 0, y: reduceMotion ? 0 : 22 },
+    initial: { opacity: 0, y: reduceMotion ? 0 : 26 },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.35 },
-    transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] as const },
   };
 
   return (
     <section
       id={id}
-      className="mx-auto flex max-w-5xl scroll-mt-24 flex-col gap-10 px-6 py-28 sm:px-10 sm:py-36 lg:flex-row lg:items-center lg:gap-16"
+      className="mx-auto flex max-w-5xl scroll-mt-24 flex-col gap-12 px-6 py-32 sm:px-10 sm:py-44 lg:flex-row lg:items-center lg:gap-20"
     >
       <motion.div
         {...reveal}
@@ -43,7 +45,7 @@ export function ActSection({
           imageSide === "left" ? "lg:order-1" : "lg:order-2",
         )}
       >
-        <PhotoPlaceholder caption={photoCaption} />
+        <PhotoPlaceholder caption={photoCaption} src={photoSrc} />
       </motion.div>
 
       <motion.div
@@ -51,16 +53,16 @@ export function ActSection({
         transition={{ ...reveal.transition, delay: 0.1 }}
         className={cn("lg:w-[62%] lg:flex-none", imageSide === "left" ? "lg:order-2" : "lg:order-1")}
       >
-        <div className="mb-5 flex items-baseline gap-3">
+        <div className="mb-6 flex items-baseline gap-3">
           <span className="font-display text-sm text-ember">{numeral}</span>
           <span className="font-hand text-xl text-ink-soft">{label}</span>
         </div>
-        <h2 className="font-display text-[clamp(1.7rem,3.4vw,2.5rem)] font-normal text-ink text-wrap-balance">
+        <h2 className="font-display text-[clamp(2.1rem,4.2vw,3.4rem)] font-light text-ink text-wrap-balance">
           {title}
         </h2>
-        <div className="mt-6 max-w-[62ch] space-y-5">
+        <div className="mt-8 max-w-[58ch] space-y-6">
           {paragraphs.map((paragraph) => (
-            <p key={paragraph} className="font-body text-[17px] leading-[1.75] text-ink/85 sm:text-[18px]">
+            <p key={paragraph} className="font-body text-[17px] leading-[1.85] text-ink/85 sm:text-[19px]">
               {paragraph}
             </p>
           ))}

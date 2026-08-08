@@ -21,7 +21,7 @@ export function LanguageToggle() {
       whileTap={{ scale: 0.86 }}
       animate={{ scale: 1 }}
       transition={{ type: "spring", stiffness: 460, damping: 21, mass: 0.45 }}
-      className="relative flex h-9 w-11 items-center justify-center overflow-hidden rounded-full border border-ink/15 bg-paper/60 backdrop-blur-sm transition-colors hover:border-ink/30"
+      className="relative flex h-9 w-11 items-center justify-center"
     >
       <span
         className={cn(

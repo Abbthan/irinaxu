@@ -4,7 +4,7 @@ import { useLayoutEffect } from "react";
 import { translateEnglishToChinese } from "@/lib/i18n/dictionary";
 import { useLocale } from "@/lib/i18n/locale-provider";
 
-const TRANSLATED_ATTRIBUTES = new Set(["placeholder", "aria-label", "title"]);
+const TRANSLATED_ATTRIBUTES = new Set(["placeholder", "aria-label", "title", "alt"]);
 const originalTextByNode = new WeakMap<Text, string>();
 const originalAttributesByElement = new WeakMap<Element, Map<string, string>>();
 

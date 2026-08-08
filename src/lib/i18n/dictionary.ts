@@ -6,6 +6,24 @@ const zh: Record<string, string> = {
   // Nav
   "Contact": "联系",
 
+  // Marquee
+  "Chasing light, becoming it": "追光，亦成光",
+
+  // Statement break
+  "What they needed wasn’t light.": "她们需要的，不是光。",
+  "It was to be seen.": "而是被看见。",
+
+  // Read Beneath (study card)
+  "A study in seeing": "一份关于「看见」的练习",
+  "Sent a light for the road.": "送去一盏路灯。",
+  "Found it lighting a stove.": "却照亮了灶台。",
+  "Thought the job was done.": "以为任务已完成。",
+  "It had only just started.": "其实才刚刚开始。",
+  "A tool, handed over.": "递出一件工具。",
+  "A life, still unseen.": "一种生活，仍未被看见。",
+  "Gave what she had.": "给出了自己拥有的。",
+  "Asked what was needed.": "却没问对方需要什么。",
+
   // Prologue / hero
   "What is light?":
     "什么是光？",
@@ -24,7 +42,7 @@ const zh: Record<string, string> = {
     "我以为我在给予光明，但她们真正需要的，或许是被看见的生活。",
   "So I didn’t stop sending lamps — I started teaching the kids to make videos instead. Not another tool for them to use once. A way to be seen, on their own terms, again and again.":
     "于是我没有停止送灯，而是开始教山里的孩子拍视频、做自媒体。这不再是一件用完即弃的工具，而是一种能让他们被看见的方式——一次又一次，以自己的方式。",
-  "Photo — Irina holding the first printed lamp": "照片 — Irina 手持第一盏打印的灯",
+  "A single street lamp lighting a quiet lane in the village at night": "夜里，一盏路灯照亮村里安静的小巷",
   "One lamp at a time, the walk home got safer.": "一盏一盏地，回家的路，变得更安全了。",
 
   // Act II — Building Bridges
@@ -36,7 +54,7 @@ const zh: Record<string, string> = {
     "我成立了青年创投联盟（YVA）。没有家庭背景，没有先天优势——凭着一股愣劲儿，我连接了一千位想要做出改变的高中生创业者。",
   "I stopped being a single point of light. I became a wire — carrying whatever I had toward whoever had an idea worth it.":
     "我不再是一个孤独的发光体，而成了一根电线，把我拥有的一切，引向每一个值得被点亮的想法。",
-  "Photo — Irina speaking at a YVA event": "照片 — Irina 在 YVA 活动现场",
+  "A hillside village of scattered lights, seen from a distance at night": "夜晚远眺，山坡上的村庄，灯火散落如星",
 
   // Act III — The Inner Light
   "Lasting Light": "恒光",

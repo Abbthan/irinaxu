@@ -27,6 +27,11 @@
   --font-display: var(--font-fraunces);
   --font-body: var(--font-newsreader);
   --font-hand: var(--font-caveat);
+
+  /* The exact entrance curve measured off rsnc.ai's own page-load choreography
+     (getAnimations() -> cubic-bezier(0.16, 1, 0.3, 1), ~760-1120ms per element).
+     A snappy decelerate — everything seems to arrive at once, softly. */
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
@@ -123,4 +128,121 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .light-beam-stage::before { animation: none; }
+}
+
+/* Ghost watermark — an oversized, near-invisible word behind hero content,
+   rsnc.ai's signature move. */
+.ghost-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(6rem, 22vw, 16rem);
+  letter-spacing: -0.02em;
+  color: var(--color-dusk-ink);
+  opacity: 0.06;
+  white-space: nowrap;
+}
+
+/* Twinkle: measured off rsnc's .nightStar keyframes exactly — opacity AND
+   scale pulse together, ease-in-out. Individual stars randomize duration/
+   delay inline so the field doesn't pulse in unison. */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.78); }
+  50% { opacity: 0.66; transform: scale(1.12); }
+}
+@keyframes twinkle-bright {
+  0%, 100% { opacity: 0.46; transform: scale(0.78); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--color-dusk-ink);
+  animation: twinkle 4.4s ease-in-out infinite;
+}
+.star-bright { animation-name: twinkle-bright; }
+
+/* SVG variant: transform-box/origin makes scale() pivot on the circle's
+   own center instead of the <svg> viewport origin. */
+.svg-star {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: twinkle 4.4s ease-in-out infinite;
+}
+.svg-star.star-bright { animation-name: twinkle-bright; }
+
+/* Gentle rock: measured off rsnc's .sun (±8deg, 3.5s). A living icon, not a
+   spinning one. --rock-deg lets callers dial the amplitude down further
+   (e.g. a boat at ±1.8deg). */
+@keyframes gentle-rock {
+  0%, 100% { transform: rotate(calc(var(--rock-deg, 8) * -1deg)); }
+  50% { transform: rotate(calc(var(--rock-deg, 8) * 1deg)); }
+}
+.gentle-rock {
+  animation: gentle-rock 3.5s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+/* Marquee: duplicate the content once and slide exactly -50%, so the loop
+   is seamless regardless of content width. rsnc runs its top ticker at a
+   slow, stately 104s per lap. */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 104s linear infinite;
+}
+
+/* Scan-line sweep: measured off rsnc's .perception-sweep (left 7% <-> 93%,
+   cubic-bezier(0.65,0,0.35,1), 3.8s) — a continuous ambient scan, not tied
+   to scroll or hover. */
+@keyframes scan-sweep {
+  0%, 100% { left: 7%; }
+  50% { left: 93%; }
+}
+.read-beneath-sweep {
+  animation: scan-sweep 3.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* A lit lamp doesn't just switch on — it breathes, faintly, once it's lit.
+   Layered on top of the one-time fade-in via a separate class toggled
+   after the fade completes. */
+@keyframes lamp-breathe {
+  0%, 100% { opacity: 0.16; }
+  50% { opacity: 0.28; }
+}
+.lamp-lit-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lamp-breathe 3.2s ease-in-out infinite;
+}
+
+/* Passive cloud drift — independent of scroll, always running. Same
+   duplicate-content/-50% technique as the old marquee, just applied
+   horizontally to a wider sprite sheet so the loop has no seam. Two
+   speeds (back layer slower/smaller, front layer faster/larger) read as
+   depth on their own, before any scroll or pointer input. */
+@keyframes cloud-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.cloud-drift-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow, .cloud-drift-track {
+    animation: none;
+  }
 }
