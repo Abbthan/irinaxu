@@ -377,7 +377,18 @@ export function VillageParallaxScene() {
           <Image src="/images/parallax-moon.png" alt="" fill sizes="9vw" className="object-contain" />
         </div>
 
-        {/* mountains — farthest, barely moves, first to arrive */}
+        {/* mountains — farthest, barely moves, first to arrive. Measured
+            directly off the source PNG: at the sun's horizontal position
+            the peak's opaque content starts only ~7.7% down the image,
+            and on a standard 16:9 laptop width that box renders taller
+            than the viewport itself, so with no offset the peak reaches
+            well above y=0 and hides the sun (and later the moon, which
+            rests at the same height) behind it. Shifted down enough to
+            clear that, with a trimmed scale buffer (its pointer
+            amplitude is tiny, so it never needed the full 1.14x other
+            layers use) rather than an even larger shift. Moving the
+            mountains down, not the sun, keeps the sun's liked position
+            intact. */}
         <Layer
           entered={entered}
           z={2}
@@ -385,9 +396,9 @@ export function VillageParallaxScene() {
           entranceStyle={off(36)}
           enteredStyle={on}
           delayMs={0}
-          scrollY={assembleY(0, -3)}
+          scrollY={assembleY(26, 23)}
           pointerAmp={[4, 2]}
-          scaleBuffer={1.14}
+          scaleBuffer={1.04}
         >
           <DayNightPair
             day="/images/parallax-mountains-day.png"
@@ -416,8 +427,8 @@ export function VillageParallaxScene() {
           entranceStyle={off(36)}
           enteredStyle={on}
           delayMs={180}
-          scrollY={assembleY(2, -4)}
-          pointerAmp={[7, 3]}
+          scrollY={assembleY(4, -9)}
+          pointerAmp={[11, 5]}
           scaleBuffer={1.14}
         >
           <DayNightPair
@@ -432,18 +443,22 @@ export function VillageParallaxScene() {
 
         {/* main village + streetlights — starts below the viewport, not
             visible at all on load; arrives by moving up during phase A,
-            never by fading in */}
+            never by fading in. Settles a few vh below its natural
+            bottom-anchored spot on purpose: the streetlights/houses/
+            fences stay fully visible, but it covers whatever's below
+            the image's own visible content instead of leaving it
+            exposed at the true viewport edge. */}
         <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-full" style={{ zIndex: 4 }}>
           <div
             className="origin-bottom scale-[1.14]"
-            style={{ transform: `translate3d(${pointer(20, 0).x}, calc(${assembleY(85, 0)} + ${pointer(20, 0).y}), 0)` }}
+            style={{ transform: `translate3d(${pointer(20, 0).x}, calc(${assembleY(85, 3)} + ${pointer(20, 0).y}), 0)` }}
           >
             <DayNightPair
               day="/images/parallax-main-village-day.png"
               night="/images/parallax-main-village-night.png"
-              dayDims={[1264, 786]}
-              nightDims={[1264, 786]}
-              box="aspect-[1264/786]"
+              dayDims={[1264, 791]}
+              nightDims={[1264, 791]}
+              box="aspect-[1264/791]"
               dropShadow
             />
           </div>
