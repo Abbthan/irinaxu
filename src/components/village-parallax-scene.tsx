@@ -204,6 +204,14 @@ export function VillageParallaxScene() {
       track.style.setProperty("--sun-y", sunArc.y.toFixed(2));
       track.style.setProperty("--moon-x", moonArc.x.toFixed(2));
       track.style.setProperty("--moon-y", moonArc.y.toFixed(2));
+      // Sun and moon must never both be visible at once: each fades out/in
+      // over a narrow band right at the day/night midpoint (0.5), reaching
+      // zero *before* the other starts rising — a brief moment with
+      // neither showing, rather than any overlap.
+      const sunOpacity = Math.min(1, Math.max(0, (0.5 - daynightT) * 8));
+      const moonOpacity = Math.min(1, Math.max(0, (daynightT - 0.5) * 8));
+      track.style.setProperty("--sun-opacity", sunOpacity.toFixed(3));
+      track.style.setProperty("--moon-opacity", moonOpacity.toFixed(3));
       raf = 0;
     };
     const onScroll = () => {
@@ -330,15 +338,17 @@ export function VillageParallaxScene() {
 
         {/* sun — high and bright at rest, retreats around the arc back
             under the mountains (lower in the stack) with an accelerating
-            ease-in */}
+            ease-in; also drifts gently with the cursor like the layers
+            below it, on top of its scroll-driven arc position */}
         <div
           aria-hidden
-          className="pointer-events-none absolute aspect-square w-[10vw] max-w-[132px] min-w-[64px] -translate-x-1/2"
+          className="pointer-events-none absolute aspect-square w-[10vw] max-w-[132px] min-w-[64px]"
           style={{
             zIndex: 1,
             left: reduceMotion ? sunRestLeft : arcLeft("--sun-x"),
             top: reduceMotion ? sunRestTop : arcTop("--sun-y"),
-            opacity: reduceMotion ? 1 : `calc(1 - (var(--sun-t, 0) * 1.15))`,
+            opacity: reduceMotion ? 1 : "var(--sun-opacity, 1)",
+            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(14, 8).x}, ${pointer(14, 8).y}, 0)`,
           }}
         >
           <Image src="/images/parallax-sun.png" alt="" fill sizes="10vw" className="object-contain" />
@@ -346,15 +356,16 @@ export function VillageParallaxScene() {
 
         {/* moon — advances around the same arc from under the mountains
             to the sun's rest position, with a decelerating ease-out,
-            exactly reversed when scrolling back up */}
+            exactly reversed when scrolling back up; same cursor drift */}
         <div
           aria-hidden
-          className="pointer-events-none absolute aspect-square w-[9vw] max-w-[118px] min-w-[58px] -translate-x-1/2"
+          className="pointer-events-none absolute aspect-square w-[9vw] max-w-[118px] min-w-[58px]"
           style={{
             zIndex: 1,
             left: reduceMotion ? moonRestLeft : arcLeft("--moon-x"),
             top: reduceMotion ? moonRestTop : arcTop("--moon-y"),
-            opacity: reduceMotion ? 0 : "var(--moon-t, 0)",
+            opacity: reduceMotion ? 0 : "var(--moon-opacity, 0)",
+            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(14, 8).x}, ${pointer(14, 8).y}, 0)`,
           }}
         >
           <Image src="/images/parallax-moon.png" alt="" fill sizes="9vw" className="object-contain" />
@@ -375,21 +386,23 @@ export function VillageParallaxScene() {
           <DayNightPair
             day="/images/parallax-mountains-day.png"
             night="/images/parallax-mountains-night.png"
-            dayDims={[1264, 825]}
-            nightDims={[1264, 825]}
-            box="aspect-[1264/825]"
+            dayDims={[1264, 781]}
+            nightDims={[1264, 781]}
+            box="aspect-[1264/781]"
             priority
           />
         </Layer>
 
         {/* hills-village — full-bleed like the mountains behind it (not a
-            floating island), but capped to a fixed height and object-COVER
-            rather than its native aspect ratio: the source is wide and
-            short on content, tall on empty sky margin, so covering a
-            shorter box crops that margin away and keeps the settlement
-            sitting low enough that the mountain peaks stay visible above
-            it, both at rest and once it has risen into its locked
-            position. */}
+            floating island), a genuinely wide, edge-to-edge ridge
+            composition (not an isolated hill mound). object-contain, same
+            as every other layer — never crop into the artwork itself; a
+            hard object-fit crop line is exactly what read as "cutting the
+            picture in half" before. Wide/short on purpose (not padded
+            with extra canvas at the bottom the way a cropped layer would
+            need): with contain, extra canvas IS extra visible content, so
+            the safety margin against scroll instead comes from a small
+            travel distance plus the scale buffer, not a taller source. */}
         <Layer
           entered={entered}
           z={3}
@@ -397,17 +410,16 @@ export function VillageParallaxScene() {
           entranceStyle={off(36)}
           enteredStyle={on}
           delayMs={180}
-          scrollY={assembleY(3, -11)}
+          scrollY={assembleY(2, -4)}
           pointerAmp={[7, 3]}
           scaleBuffer={1.14}
         >
           <DayNightPair
             day="/images/parallax-hills-village-day.png"
             night="/images/parallax-hills-village-night.png"
-            dayDims={[1255, 661]}
-            nightDims={[1255, 661]}
-            box="h-[34vh]"
-            objectFit="cover"
+            dayDims={[1264, 330]}
+            nightDims={[1264, 330]}
+            box="aspect-[1264/330]"
             dropShadow
           />
         </Layer>
@@ -423,9 +435,9 @@ export function VillageParallaxScene() {
             <DayNightPair
               day="/images/parallax-main-village-day.png"
               night="/images/parallax-main-village-night.png"
-              dayDims={[1252, 778]}
-              nightDims={[1252, 778]}
-              box="aspect-[1252/778]"
+              dayDims={[1264, 786]}
+              nightDims={[1264, 786]}
+              box="aspect-[1264/786]"
               dropShadow
             />
           </div>
@@ -440,10 +452,10 @@ export function VillageParallaxScene() {
           className="pointer-events-none absolute inset-0"
           style={{ zIndex: 6, transform: `translateY(${reduceMotion ? "0%" : coverY()})` }}
         >
-          <div className="absolute bottom-[42vh] left-0 h-[20vh] w-full">
+          <div className="absolute bottom-[18vh] left-0 h-[20vh] w-full">
             <Image src="/images/parallax-wheatfield.png" alt="" fill sizes="100vw" className="object-cover object-bottom" />
           </div>
-          <div className="absolute bottom-0 left-0 h-[42vh] w-full bg-black" />
+          <div className="absolute bottom-0 left-0 h-[18vh] w-full bg-black" />
         </div>
       </section>
     </div>
