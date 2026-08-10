@@ -164,8 +164,8 @@ export function VillageParallaxScene() {
   const reduceMotion = useReducedMotion();
   const [entered, setEntered] = useState(false);
 
-  // Scroll -> --scene-progress (+ eased --sun-t/--moon-t and their arc
-  // x/y offsets, derived from it), written straight to the DOM: a plain
+  // Scroll -> --scene-progress (+ the sun/moon arc x/y offsets and
+  // opacities derived from it), written straight to the DOM: a plain
   // listener proved far more reliable in testing than useScroll's own
   // tracking.
   useEffect(() => {
@@ -177,15 +177,21 @@ export function VillageParallaxScene() {
       const total = rect.height - window.innerHeight;
       const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
       const daynightT = Math.min(1, Math.max(0, (progress - PHASE_A_END) / (PHASE_B_END - PHASE_A_END)));
-      // Sun dips with an ease-IN (starts slow, accelerates down and out of
-      // view); moon rises with an ease-OUT (starts fast, decelerates into
-      // place) — reversible for free since both are pure functions of
-      // scroll position, not stateful velocity.
-      const sunT = daynightT * daynightT;
-      const moonT = 1 - (1 - daynightT) * (1 - daynightT);
+      // Sun and moon each get their OWN half of the transition (0-0.5 and
+      // 0.5-1) for their full arc traversal, not the whole 0-1 span — so
+      // the sun has actually reached the horizon (dipped behind the
+      // mountains) by the midpoint, and the moon starts exactly there and
+      // rises through its own half. Splitting it this way is what makes
+      // them visibly swap AT the horizon instead of the sun fading out
+      // while still high up and the moon fading in already part-risen.
+      const sunPhase = Math.min(1, Math.max(0, daynightT / 0.5));
+      const moonPhase = Math.min(1, Math.max(0, (daynightT - 0.5) / 0.5));
+      // Ease-IN for the dip (accelerating down), ease-OUT for the rise
+      // (decelerating into place) — reversible for free since both are
+      // pure functions of scroll position, not stateful velocity.
+      const sunEase = sunPhase * sunPhase;
+      const moonEase = 1 - (1 - moonPhase) * (1 - moonPhase);
       track.style.setProperty("--scene-progress", progress.toString());
-      track.style.setProperty("--sun-t", sunT.toString());
-      track.style.setProperty("--moon-t", moonT.toString());
       // Quarter-circle arc: a shared center sits below the mountains: at
       // t_arc=0 the point is level with the center, off to one side
       // ("under the mountains", occluded); at t_arc=1 it's directly above
@@ -198,18 +204,18 @@ export function VillageParallaxScene() {
         const angleRad = (angleDeg * Math.PI) / 180;
         return { x: ARC_RADIUS_VH * Math.cos(angleRad), y: -ARC_RADIUS_VH * Math.sin(angleRad) };
       };
-      const sunArc = arcOffset(1 - sunT);
-      const moonArc = arcOffset(moonT);
+      const sunArc = arcOffset(1 - sunEase);
+      const moonArc = arcOffset(moonEase);
       track.style.setProperty("--sun-x", sunArc.x.toFixed(2));
       track.style.setProperty("--sun-y", sunArc.y.toFixed(2));
       track.style.setProperty("--moon-x", moonArc.x.toFixed(2));
       track.style.setProperty("--moon-y", moonArc.y.toFixed(2));
-      // Sun and moon must never both be visible at once: each fades out/in
-      // over a narrow band right at the day/night midpoint (0.5), reaching
-      // zero *before* the other starts rising — a brief moment with
-      // neither showing, rather than any overlap.
-      const sunOpacity = Math.min(1, Math.max(0, (0.5 - daynightT) * 8));
-      const moonOpacity = Math.min(1, Math.max(0, (daynightT - 0.5) * 8));
+      // Opacity stays fully visible through most of the dip/rise, fading
+      // only right at the horizon end of each body's own phase — reads as
+      // "sinks down, then disappears behind the mountains" / "emerges
+      // from behind the mountains, then rises", not an independent fade.
+      const sunOpacity = Math.min(1, Math.max(0, (1 - sunPhase) * 6));
+      const moonOpacity = Math.min(1, Math.max(0, moonPhase * 6));
       track.style.setProperty("--sun-opacity", sunOpacity.toFixed(3));
       track.style.setProperty("--moon-opacity", moonOpacity.toFixed(3));
       raf = 0;
