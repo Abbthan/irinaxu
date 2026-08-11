@@ -14,12 +14,12 @@ const PHASE_B_END = 0.68; // position locked, day -> night
 // phase C (0.68 -> 1): black wheatfield rises to cover
 
 // Sun/moon share one quarter-circle arc: a center point below the
-// mountains, swept from 180deg (level with the center, off to the side —
-// occluded, "under the mountains") to 90deg (directly above the center —
-// clear of them). See the scroll effect for how each body's position on
-// this arc is derived.
+// mountains, swept from 180deg (level with the center, off to the side)
+// to 90deg (directly above the center). At their high endpoint they sit
+// above the mountain stack so the mountain artwork cannot swallow them;
+// the closer village layers can still occlude them naturally.
 const ARC_CENTER_X_PCT = 66;
-const ARC_CENTER_Y_VH = 54;
+const ARC_CENTER_Y_VH = 43;
 const ARC_RADIUS_VH = 45;
 const ARC_START_DEG = 180;
 const ARC_END_DEG = 90;
@@ -149,6 +149,7 @@ function DayNightPair({
         className={imageClass}
         style={{ opacity: `calc(1 - ${DAYNIGHT_T})` }}
         priority={priority}
+        unoptimized
       />
       <Image
         src={night}
@@ -157,6 +158,7 @@ function DayNightPair({
         height={nightDims[1]}
         className={imageClass}
         style={{ opacity: DAYNIGHT_T }}
+        unoptimized
       />
     </div>
   );
@@ -346,19 +348,18 @@ export function VillageParallaxScene() {
           ))}
         </div>
 
-        {/* sun — high and bright at rest, retreats around the arc back
-            under the mountains (lower in the stack) with an accelerating
+        {/* sun — high and bright at rest, retreats around the arc with an accelerating
             ease-in; also drifts gently with the cursor, on top of its
             scroll-driven arc position. Cursor-drift depth ordering across
             the whole scene, slowest to fastest (farthest to closest):
-            sun/moon (3,1.5) < mountains (6,3) < hills-village (11,5) <
-            main-village (20,0) — the sun/moon sit "past" the mountains,
+            sun/moon (3,1.5) < mountains (6,3) < hills-village (13,6) <
+            main-village (22,4) — the sun/moon sit "past" the mountains,
             so they move even less than the layer in front of them. */}
         <div
           aria-hidden
           className="pointer-events-none absolute aspect-square w-[10vw] max-w-[132px] min-w-[64px]"
           style={{
-            zIndex: 1,
+            zIndex: 3,
             left: reduceMotion ? sunRestLeft : arcLeft("--sun-x"),
             top: reduceMotion ? sunRestTop : arcTop("--sun-y"),
             opacity: reduceMotion ? 1 : "var(--sun-opacity, 1)",
@@ -375,7 +376,7 @@ export function VillageParallaxScene() {
           aria-hidden
           className="pointer-events-none absolute aspect-square w-[9vw] max-w-[118px] min-w-[58px]"
           style={{
-            zIndex: 1,
+            zIndex: 3,
             left: reduceMotion ? moonRestLeft : arcLeft("--moon-x"),
             top: reduceMotion ? moonRestTop : arcTop("--moon-y"),
             opacity: reduceMotion ? 0 : "var(--moon-opacity, 0)",
@@ -389,14 +390,9 @@ export function VillageParallaxScene() {
             directly off the source PNG: at the sun's horizontal position
             the peak's opaque content starts only ~7.7% down the image,
             and on a standard 16:9 laptop width that box renders taller
-            than the viewport itself, so with no offset the peak reaches
-            well above y=0 and hides the sun (and later the moon, which
-            rests at the same height) behind it. Shifted down enough to
-            clear that, with a trimmed scale buffer (its pointer
-            amplitude is tiny, so it never needed the full 1.14x other
-            layers use) rather than an even larger shift. Moving the
-            mountains down, not the sun, keeps the sun's liked position
-            intact. */}
+            than the viewport itself. Its original measured offsets remain
+            unchanged; celestial clearance is handled by the sun/moon
+            position and stacking, not by moving this layer. */}
         <Layer
           entered={entered}
           z={2}
@@ -411,8 +407,8 @@ export function VillageParallaxScene() {
           <DayNightPair
             day="/images/parallax-mountains-day.png"
             night="/images/parallax-mountains-night.png"
-            dayDims={[1264, 1741]}
-            nightDims={[1264, 1741]}
+            dayDims={[1264, 1621]}
+            nightDims={[1264, 1621]}
             box="aspect-[1264/781]"
             priority
           />
@@ -434,14 +430,14 @@ export function VillageParallaxScene() {
           enteredStyle={on}
           delayMs={180}
           scrollY={assembleY(4, -9)}
-          pointerAmp={[11, 5]}
+          pointerAmp={[13, 6]}
           scaleBuffer={1.14}
         >
           <DayNightPair
             day="/images/parallax-hills-village-day.png"
             night="/images/parallax-hills-village-night.png"
-            dayDims={[1264, 1288]}
-            nightDims={[1264, 1288]}
+            dayDims={[1264, 1173]}
+            nightDims={[1264, 1173]}
             box="aspect-[1264/330]"
             dropShadow
           />
@@ -457,13 +453,13 @@ export function VillageParallaxScene() {
         <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-full" style={{ zIndex: 4 }}>
           <div
             className="origin-bottom scale-[1.14]"
-            style={{ transform: `translate3d(${pointer(20, 0).x}, calc(${assembleY(85, 3)} + ${pointer(20, 0).y}), 0)` }}
+            style={{ transform: `translate3d(${pointer(22, 4).x}, calc(${assembleY(85, 3)} + ${pointer(22, 4).y}), 0)` }}
           >
             <DayNightPair
               day="/images/parallax-main-village-day.png"
               night="/images/parallax-main-village-night.png"
-              dayDims={[1264, 1734]}
-              nightDims={[1264, 1734]}
+              dayDims={[1264, 1618]}
+              nightDims={[1264, 1618]}
               box="aspect-[1264/791]"
               dropShadow
             />

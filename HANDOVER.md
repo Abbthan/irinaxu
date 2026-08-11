@@ -1,7 +1,8 @@
 # Handover — Irina's Narrative Website
 
 Originally written at commit `cbd736d` on `main`, then updated on
-2026-08-11 after the downward-extension work in §9 was completed.
+2026-08-11 after the downward-extension work in §9 and its visual
+seam/cutout repair were completed.
 Written for whoever (human or AI) picks this up next.
 
 ## 1. What this project is
@@ -197,7 +198,7 @@ but stylistically-matched layers can visually fuse into one.
   seam under `object-fit: cover` (before that was abandoned). Full-bleed
   like mountains, not a centered/bounded floating island (an earlier
   iteration had it bounded and it read as too small / disconnected).
-  `scrollY={assembleY(4, -9)}`, `pointerAmp={[11, 5]}` — sped up
+  `scrollY={assembleY(4, -9)}`, `pointerAmp={[13, 6]}` — sped up
   relative to mountains on both scroll and cursor parallax per explicit
   feedback that the depth differential wasn't strong enough.
 - **Main-village** (z=4, closest of the three village layers): *not*
@@ -208,8 +209,10 @@ but stylistically-matched layers can visually fuse into one.
   natural bottom-anchored rest position on purpose. This is the fix for
   a real bug (background exposed below the layer's own visible content)
   — solved via **positioning**, not pixel manipulation. See §6 for why
-  the pixel-manipulation attempt was reverted.
-- **Sun / Moon** (z=1, behind mountains): share one quarter-circle arc,
+  the pixel-manipulation attempt was reverted. Cursor parallax is
+  `pointer(22, 4)`, including deliberate vertical response.
+- **Sun / Moon** (z=3, above mountains but below the closer village
+  artwork): share one quarter-circle arc,
   computed in JS every scroll frame (`ARC_CENTER_X_PCT/Y_VH/RADIUS_VH/
   START_DEG/END_DEG` constants) since CSS `calc()` has no trig
   functions. Center sits below the mountains; sweeping from 180°
@@ -224,8 +227,11 @@ but stylistically-matched layers can visually fuse into one.
   moon start exactly there. Opacity is tied to the same phase, fading
   only in the last ~1/6 of each body's own phase, so they visibly swap
   at the horizon with a brief moment of neither being visible — never
-  both. Both also drift gently with the cursor (`pointer(14, 8)`) like
-  the layers below them.
+  both. Both also drift gently with the cursor (`pointer(3, 1.5)`). The
+  arc uses `ARC_CENTER_X_PCT=66`, `ARC_CENTER_Y_VH=43`, and
+  `ARC_RADIUS_VH=45`; the mountain offsets remain the original
+  `assembleY(26, 23)`. Celestial clearance must be adjusted here, never
+  by moving the mountain layer.
 - **Wheatfield / black cover** (z=6): a short black "curtain"
   (`h-[18vh]`, was `42vh` — "significantly shorter" per feedback) rises
   during phase C. The wheat image sits *above* the block's leading edge
@@ -358,8 +364,10 @@ manipulation.
 
 ## 7. Current state / what's verified
 
-- Latest commit: `cbd736d` on `main`. `tsc --noEmit`, `npm run lint`,
-  `npm run build` all clean as of that commit.
+- The original handover baseline was `cbd736d`; the first extension
+  pass was `6507e52`. Use `git log -3 --oneline` for the current repair
+  commit. Type-check, lint, and production-build results are recorded
+  in §9.
 - The parallax hero has been visually verified across: day rest state,
   mid day→night transition (sun and moon never simultaneously visible),
   locked night state, phase-C wheatfield/cover, and multiple viewport
@@ -395,11 +403,12 @@ Nothing is currently a known bug. These are gaps, not defects:
 The user's latest request (three parts, all given in one message):
 
 1. **Cursor-parallax depth ordering** — ✅ DONE, committed to the file
-   (not yet git-committed, see below). Sun/moon `pointer(14,8)` →
+   Sun/moon `pointer(14,8)` →
    `pointer(3,1.5)`; mountains `pointerAmp={[4,2]}` → `{[6,3]}`.
-   Hills-village `[11,5]` and main-village `pointer(20,0)` were already
-   correctly faster and untouched. Verified via `tsc --noEmit` and
-   `npm run lint`, both clean.
+   A later feedback pass increased hills-village `[11,5]` → `[13,6]`
+   and main-village `pointer(20,0)` → `pointer(22,4)`, adding the missing
+   vertical response to the foreground. Verified via `tsc --noEmit`
+   and `npm run lint`, both clean.
 2. **API configuration documented safely** — ✅ DONE (§5 records the
    provider and environment-variable names; the live key is redacted).
 3. **Downward image outpainting for 6 images** (mountains-day/night,
@@ -445,17 +454,26 @@ post-processing — this is what all the scratchpad scripts below do:
    add new houses/structures, only continue the empty ground/hillside"
    was important for the village layers, to stop it inventing new
    buildings in the margin).
-2. **Chroma-key BOTH the original raw source and the AI result to RGBA**
-   independently (reuse `chroma_key_pair.py`'s `key_to_rgba` logic).
-3. **Alpha-composite the AI result UNDER the original**, with a ~40px
-   vertical overlap into the original's own fade zone, using standard
+2. **Undo the API's non-uniform canvas resize before compositing.** The
+   edit endpoint forced the tall input into its fixed portrait result;
+   restoring that result with one width-derived scale compressed the
+   generated ground vertically and caused the hard horizontal splice
+   reported after `6507e52`. Restore X to the raw width and restore Y
+   independently so `boundary_frac` lands at the raw image's original
+   height.
+3. **Chroma-key BOTH the original raw source and the restored AI result
+   to RGBA** with border-connected background removal. Exact/nearly
+   white exterior is removed, but pale enclosed house paint remains
+   opaque; this is what prevents holes in walls and roofs.
+4. **Alpha-composite the AI result UNDER the original**, with a 160px
+   overlap and a smooth 132px terrain dissolve, using standard
    "A over B": `out_rgb = orig_rgb*orig_a + ai_rgb*(1-orig_a)`. Wherever
-   the original is fully opaque (`alpha==255`), this is **mathematically
-   exact pixel preservation** (verified: 100% of alpha==255 pixels
-   diffed to 0 against the original, for every image tried). Wherever
-   the original has faded to transparent (soft/jagged brush edges), the
-   new content shows through instead of leaving a transparent gap.
-4. **Why not a hard row-cut instead of alpha-compositing?** Tried that
+   the original is above the lowest terrain blend band it remains
+   exact; only that bottom terrain band is dissolved into the generated
+   continuation. This small exception to literal pixel preservation is
+   necessary to remove the white chroma-key fringe the user identified,
+   without changing any house architecture or upper-scene placement.
+5. **Why not a hard row-cut instead of alpha-compositing?** Tried that
    first (`composite_extend.py`, `composite_extend2.py` in scratchpad —
    superseded, don't use). Two raw sources (hills-village,
    main-village) turned out to have a **big pure-white margin between
@@ -469,7 +487,7 @@ post-processing — this is what all the scratchpad scripts below do:
    overlap is what actually makes it disappear, because the original's
    own semi-transparent edge pixels blend naturally into solid new
    content instead of sitting on a hard line.
-5. **The final, correct script is `extend_pipeline.py`** (scratchpad
+6. **The final corrected script is `extend_pipeline_connected.py`** (scratchpad
    dir below) — takes one raw source + one AI result, does steps 2–3
    automatically, finds the real content-bottom and the AI's own
    solid-content-start past its mask boundary, and outputs one RGBA
@@ -504,7 +522,9 @@ Key files there:
 - `run_outpaint.sh` — driver: prep base+mask → call API → decode →
   (calls the now-superseded `composite_extend.py`, ignore that last
   step, its output isn't what got used).
-- `extend_pipeline.py` — **the script that matters**, see above.
+- `extend_pipeline_connected.py` — **the corrected script that matters**;
+  it includes connected-key mattes, inverse non-uniform resize, lower-edge
+  erosion, and the registered terrain dissolve described above.
 - `rgba-<name>.png` — the 6 completed alpha-composited source results.
   `rgba-<name>-flat.png` are flattened-onto-white versions for
   eyeballing; `cropped-<name>.png` are the aligned final candidates.
@@ -578,19 +598,32 @@ as an implementation record; every item below was completed on
 
 ### Completion record — 2026-08-11
 
-- Final aligned sizes: mountains `1264×1741` (2.23× old height),
-  hills-village `1264×1288` (3.90×), main-village `1264×1734` (2.19×).
-- Every fully opaque pixel in the old deployed top regions compared
-  byte-for-byte identical after compositing and cropping. Day/night
-  strict-alpha overlap measured 0.9890, 0.9933, and 0.9429 respectively;
-  the lower main-village ratio is attributable to foliage/edge coverage,
-  while the shared architectural framing remains aligned.
+- Corrected aligned sizes: mountains `1264×1621`, hills-village
+  `1264×1173`, main-village `1264×1618`. These preserve the original
+  top anchors while supplying the downward safety margin needed at the
+  verified failure states.
+- The upper source artwork and all house architecture remain unchanged;
+  only the lowest terrain band dissolves into the continuation. The
+  border-connected matte keeps pale wall/roof paint opaque instead of
+  treating it as white background and punching holes through houses.
 - `DayNightPair` now top-anchors contained images at intrinsic aspect
   ratio while retaining each old `box` aspect ratio as the fixed scene
   footprint. The extra content overflows only downward.
-- Browser verification covered desktop rest, assembly lock,
-  day-to-night, locked night, wheatfield cover, and a 390px viewport.
-  No page background was exposed and the mountains offset remained valid.
+- Browser verification after the corrective pass covered the exact
+  reported desktop assembly-lock state (`1600×900`, progress ≈0.382),
+  day-to-night (≈0.531), and locked night (≈0.680). The old horizontal
+  band is gone, the continuation covers the layer underneath, and the
+  house silhouettes remain intact.
+- The six changing parallax images use Next Image's documented
+  `unoptimized` path so a long-running dev session cannot keep serving
+  stale optimizer-cache bytes after the PNGs are replaced in place.
+- A final visual-feedback pass makes the main-village night terrain
+  dissolve complete earlier than the day version, removing its residual
+  bright cutout edge; enclosed near-white islands in the two foreground
+  tree canopies are keyed only inside their foliage/sky zones, preserving
+  pale house walls and roofs. The sun/moon arc was raised and placed
+  above the mountain stack while the mountain offsets stayed exactly at
+  `assembleY(26, 23)` as requested.
 - `tsc --noEmit` and `npm run lint` passed. The production build passed
   with `npx next build --webpack`; default Turbopack could not run its
   internal port-binding worker inside the restricted verification
