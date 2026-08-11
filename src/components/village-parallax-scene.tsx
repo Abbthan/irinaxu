@@ -102,9 +102,10 @@ function Layer({ entered, z, className, entranceStyle, enteredStyle, delayMs, sc
 }
 
 // A day image and a night image, same box, cross-fading on --scene-progress
-// via DAYNIGHT_T — never a hard cut, and never a size jump, because both
-// share one fixed box (sized by `box`, e.g. an aspect-ratio class or a
-// fixed height) and the same object-fit.
+// via DAYNIGHT_T. For contained layers, `box` deliberately retains the
+// ORIGINAL artwork's aspect ratio while the taller images are pinned to its
+// top edge at full width. Their safety margin therefore overflows downward
+// without resizing or moving any of the artwork already on-screen.
 function DayNightPair({
   day,
   night,
@@ -131,7 +132,10 @@ function DayNightPair({
    * detailed layer behind it (the mountains), instead of fusing with it. */
   dropShadow?: boolean;
 }) {
-  const fitClass = objectFit === "cover" ? "object-cover" : "object-contain";
+  const imageClass =
+    objectFit === "cover"
+      ? "absolute inset-0 h-full w-full object-cover object-bottom"
+      : "absolute inset-x-0 top-0 h-auto w-full";
   return (
     <div
       className={`relative w-full ${box}`}
@@ -142,7 +146,7 @@ function DayNightPair({
         alt=""
         width={dayDims[0]}
         height={dayDims[1]}
-        className={`absolute inset-0 h-full w-full ${fitClass} object-bottom`}
+        className={imageClass}
         style={{ opacity: `calc(1 - ${DAYNIGHT_T})` }}
         priority={priority}
       />
@@ -151,7 +155,7 @@ function DayNightPair({
         alt=""
         width={nightDims[0]}
         height={nightDims[1]}
-        className={`absolute inset-0 h-full w-full ${fitClass} object-bottom`}
+        className={imageClass}
         style={{ opacity: DAYNIGHT_T }}
       />
     </div>
@@ -344,8 +348,12 @@ export function VillageParallaxScene() {
 
         {/* sun — high and bright at rest, retreats around the arc back
             under the mountains (lower in the stack) with an accelerating
-            ease-in; also drifts gently with the cursor like the layers
-            below it, on top of its scroll-driven arc position */}
+            ease-in; also drifts gently with the cursor, on top of its
+            scroll-driven arc position. Cursor-drift depth ordering across
+            the whole scene, slowest to fastest (farthest to closest):
+            sun/moon (3,1.5) < mountains (6,3) < hills-village (11,5) <
+            main-village (20,0) — the sun/moon sit "past" the mountains,
+            so they move even less than the layer in front of them. */}
         <div
           aria-hidden
           className="pointer-events-none absolute aspect-square w-[10vw] max-w-[132px] min-w-[64px]"
@@ -354,7 +362,7 @@ export function VillageParallaxScene() {
             left: reduceMotion ? sunRestLeft : arcLeft("--sun-x"),
             top: reduceMotion ? sunRestTop : arcTop("--sun-y"),
             opacity: reduceMotion ? 1 : "var(--sun-opacity, 1)",
-            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(14, 8).x}, ${pointer(14, 8).y}, 0)`,
+            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(3, 1.5).x}, ${pointer(3, 1.5).y}, 0)`,
           }}
         >
           <Image src="/images/parallax-sun.png" alt="" fill sizes="10vw" className="object-contain" />
@@ -371,7 +379,7 @@ export function VillageParallaxScene() {
             left: reduceMotion ? moonRestLeft : arcLeft("--moon-x"),
             top: reduceMotion ? moonRestTop : arcTop("--moon-y"),
             opacity: reduceMotion ? 0 : "var(--moon-opacity, 0)",
-            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(14, 8).x}, ${pointer(14, 8).y}, 0)`,
+            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(3, 1.5).x}, ${pointer(3, 1.5).y}, 0)`,
           }}
         >
           <Image src="/images/parallax-moon.png" alt="" fill sizes="9vw" className="object-contain" />
@@ -397,14 +405,14 @@ export function VillageParallaxScene() {
           enteredStyle={on}
           delayMs={0}
           scrollY={assembleY(26, 23)}
-          pointerAmp={[4, 2]}
+          pointerAmp={[6, 3]}
           scaleBuffer={1.04}
         >
           <DayNightPair
             day="/images/parallax-mountains-day.png"
             night="/images/parallax-mountains-night.png"
-            dayDims={[1264, 781]}
-            nightDims={[1264, 781]}
+            dayDims={[1264, 1741]}
+            nightDims={[1264, 1741]}
             box="aspect-[1264/781]"
             priority
           />
@@ -415,11 +423,9 @@ export function VillageParallaxScene() {
             composition (not an isolated hill mound). object-contain, same
             as every other layer — never crop into the artwork itself; a
             hard object-fit crop line is exactly what read as "cutting the
-            picture in half" before. Wide/short on purpose (not padded
-            with extra canvas at the bottom the way a cropped layer would
-            need): with contain, extra canvas IS extra visible content, so
-            the safety margin against scroll instead comes from a small
-            travel distance plus the scale buffer, not a taller source. */}
+            picture in half" before. The image now carries a generated
+            downward safety margin, but its original aspect-ratio box remains
+            unchanged so the visible ridge keeps exactly the same geometry. */}
         <Layer
           entered={entered}
           z={3}
@@ -434,8 +440,8 @@ export function VillageParallaxScene() {
           <DayNightPair
             day="/images/parallax-hills-village-day.png"
             night="/images/parallax-hills-village-night.png"
-            dayDims={[1264, 330]}
-            nightDims={[1264, 330]}
+            dayDims={[1264, 1288]}
+            nightDims={[1264, 1288]}
             box="aspect-[1264/330]"
             dropShadow
           />
@@ -456,8 +462,8 @@ export function VillageParallaxScene() {
             <DayNightPair
               day="/images/parallax-main-village-day.png"
               night="/images/parallax-main-village-night.png"
-              dayDims={[1264, 791]}
-              nightDims={[1264, 791]}
+              dayDims={[1264, 1734]}
+              nightDims={[1264, 1734]}
               box="aspect-[1264/791]"
               dropShadow
             />
