@@ -76,11 +76,15 @@ export function HeroScene() {
   return (
     <section className="relative w-full" data-next-page-reveal>
       {/* Preserve the original wheat treatment: transparent artwork zone
-          first, followed by only the original small 18vh black strip. This
-          whole 48vh divider stays below the viewport until the completed
-          night still has had its scroll beat, then travels with this page. */}
-      <div aria-hidden className="pointer-events-none relative h-[48vh] w-full overflow-hidden">
-        <div className="absolute top-0 left-0 h-[30vh] w-full overflow-hidden">
+          first, followed by only the original small 18vh black strip. The
+          wheat window grows with width on landscape screens, preventing its
+          stalks from being clipped halfway by the fixed black strip. */}
+      <div
+        aria-hidden
+        className="pointer-events-none relative w-full overflow-hidden"
+        style={{ height: "calc(max(30vh, 30vw) + 18vh)" }}
+      >
+        <div className="absolute top-0 left-0 h-[max(30vh,30vw)] w-full overflow-hidden">
           <Image
             src="/images/parallax-wheatfield.png"
             alt=""

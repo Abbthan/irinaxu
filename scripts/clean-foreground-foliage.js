@@ -176,30 +176,17 @@ async function cleanNightWithDaySilhouette(dayPath, nightPath) {
     throw new Error("Unexpected foreground dimensions; review canopy zones before running this cleanup.");
   }
 
-  // Night was generated from the same aligned composition but retained a
-  // denser white matte. The already-clean day alpha is the safest semantic
-  // guide for where sky should pass through. A one-pixel dilation preserves
-  // night foliage that is only slightly fuller, while removing the large
-  // enclosed matte sheets responsible for the pale canopy blobs.
-  const dayAlphaDilated = Buffer.alloc(WIDTH * HEIGHT);
-  for (let y = 0; y < HEIGHT; y += 1) {
-    for (let x = 0; x < WIDTH; x += 1) {
-      let maxAlpha = 0;
-      for (let sampleY = Math.max(0, y - 1); sampleY <= Math.min(HEIGHT - 1, y + 1); sampleY += 1) {
-        for (let sampleX = Math.max(0, x - 1); sampleX <= Math.min(WIDTH - 1, x + 1); sampleX += 1) {
-          maxAlpha = Math.max(maxAlpha, day.data[(sampleY * WIDTH + sampleX) * 4 + 3]);
-        }
-      }
-      dayAlphaDilated[y * WIDTH + x] = maxAlpha;
-    }
-  }
-
+  // The aligned day cutout is the semantic source of truth for the tree
+  // silhouette. Do not dilate this mask: even one extra pixel around every
+  // leaf joins neighboring edges into the blue sheets that read as leftover
+  // background at rendered size. Exact alpha preserves every day-supported
+  // branch while making every genuine inter-branch gap transparent.
   const output = Buffer.from(night.data);
   for (let y = 0; y < HEIGHT; y += 1) {
     for (let x = 0; x < WIDTH; x += 1) {
       if (!inCanopy(x, y)) continue;
       const pixel = (y * WIDTH + x) * 4;
-      const cleanedAlpha = Math.min(output[pixel + 3], dayAlphaDilated[y * WIDTH + x]);
+      const cleanedAlpha = Math.min(output[pixel + 3], day.data[pixel + 3]);
       output[pixel + 3] = cleanedAlpha;
       if (cleanedAlpha === 0) {
         output[pixel] = 0;
@@ -266,11 +253,11 @@ async function main() {
     throw new Error("Usage: node scripts/clean-foreground-foliage.js DAY.png NIGHT.png [RAW_DAY.png] [RAW_NIGHT.png]");
   }
   if (rawDayPath) await recoverDayFoliage(rawDayPath, dayPath);
-  if (rawNightPath) {
-    await recoverNightFoliage(rawNightPath, nightPath);
-  } else {
-    await cleanNightWithDaySilhouette(dayPath, nightPath);
-  }
+  if (rawNightPath) await recoverNightFoliage(rawNightPath, nightPath);
+  // Always finish with the aligned semantic mask. The raw color-distance pass
+  // can recover legitimate night detail, but it cannot distinguish blue matte
+  // islands from blue foliage on its own.
+  await cleanNightWithDaySilhouette(dayPath, nightPath);
 }
 
 main().catch((error) => {

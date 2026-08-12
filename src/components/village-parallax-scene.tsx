@@ -47,6 +47,13 @@ function responsiveDepthOffset(artHeightVw: number, referenceHeightVh: number): 
   return `max(0px, calc(${artHeightVw}vw - ${referenceHeightVh}vh))`;
 }
 
+// Wide, shallow windows need a small additional mountain drop to retain the
+// approved horizon proportion. This is zero through ordinary/tall layouts and
+// grows gently to at most 2vh on ultrawide displays.
+function wideMountainNudge(): string {
+  return "clamp(0px, calc((100vw - 170vh) * 0.08), 2vh)";
+}
+
 const DAYNIGHT_T = phaseT(PHASE_A_END, PHASE_B_END);
 
 function cloudExitY(): string {
@@ -462,7 +469,7 @@ export function VillageParallaxScene() {
           entranceStyle={off(36)}
           enteredStyle={on}
           delayMs={0}
-          scrollY={`calc(${assembleY(26, 23)} + ${responsiveDepthOffset(61.8, 84)})`}
+          scrollY={`calc(${assembleY(26, 23)} + ${responsiveDepthOffset(61.8, 84)} + ${wideMountainNudge()})`}
           pointerAmp={[6, 3]}
           scaleBuffer={1.04}
         >
