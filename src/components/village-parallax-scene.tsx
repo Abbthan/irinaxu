@@ -19,7 +19,7 @@ const PHASE_B_END = 0.68; // position locked, day -> night
 // above the mountain stack so the mountain artwork cannot swallow them;
 // the closer village layers can still occlude them naturally.
 const ARC_CENTER_X_PCT = 66;
-const ARC_CENTER_Y_VH = 43;
+const ARC_CENTER_Y_VH = 48;
 const ARC_RADIUS_VH = 45;
 const ARC_START_DEG = 180;
 const ARC_END_DEG = 90;
@@ -43,6 +43,11 @@ const DAYNIGHT_T = phaseT(PHASE_A_END, PHASE_B_END);
 function coverY(): string {
   const t = phaseT(PHASE_B_END, 1);
   return `calc(100% - (100% * ${t}))`;
+}
+
+function cloudExitY(): string {
+  const t = phaseT(0, 0.24);
+  return `calc(-82vh * ${t})`;
 }
 
 // Small pointer-driven offset, additive on top of the scroll transform —
@@ -348,6 +353,41 @@ export function VillageParallaxScene() {
           ))}
         </div>
 
+        {/* Three painterly clouds drift right-to-left only in the opening
+            tableau. Scroll carries the entire cloud field upward before
+            the day/night phase starts; reversing the scroll restores it. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+          style={{
+            zIndex: 3,
+            opacity: reduceMotion ? 0.74 : `calc(1 - ${phaseT(0.18, 0.3)})`,
+            transform: reduceMotion
+              ? "none"
+              : `translate3d(${pointer(7, 3.5).x}, calc(${cloudExitY()} + ${pointer(7, 3.5).y}), 0)`,
+          }}
+        >
+          {[
+            { src: "/images/parallax-cloud-1.png", width: "24vw", top: "13vh", duration: "55s", delay: "-5s" },
+            { src: "/images/parallax-cloud-2.png", width: "16vw", top: "29vh", duration: "66s", delay: "-29s" },
+            { src: "/images/parallax-cloud-3.png", width: "21vw", top: "7vh", duration: "61s", delay: "-47s" },
+          ].map((cloud, index) => (
+            <div
+              key={cloud.src}
+              className={reduceMotion ? "absolute" : "parallax-cloud absolute"}
+              style={{
+                top: cloud.top,
+                width: cloud.width,
+                aspectRatio: index === 0 ? "537 / 282" : index === 1 ? "359 / 120" : "449 / 215",
+                animationDuration: cloud.duration,
+                animationDelay: cloud.delay,
+              }}
+            >
+              <Image src={cloud.src} alt="" fill sizes={cloud.width} className="object-contain" unoptimized />
+            </div>
+          ))}
+        </div>
+
         {/* sun — high and bright at rest, retreats around the arc with an accelerating
             ease-in; also drifts gently with the cursor, on top of its
             scroll-driven arc position. Cursor-drift depth ordering across
@@ -464,6 +504,18 @@ export function VillageParallaxScene() {
               dropShadow
             />
           </div>
+        </div>
+
+        {/* Warm pools of light around the foreground streetlamps. They
+            emerge with night, softly illuminating air and ground without
+            redrawing or blurring the painted lamp posts themselves. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ zIndex: 5, opacity: reduceMotion ? 0 : DAYNIGHT_T }}
+        >
+          <div className="streetlight-aura streetlight-aura-primary" />
+          <div className="streetlight-aura streetlight-aura-secondary" />
         </div>
 
         {/* black wheatfield — a short curtain rising from below at rest,

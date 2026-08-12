@@ -168,6 +168,46 @@ body {
 }
 .star-bright { animation-name: twinkle-bright; }
 
+@keyframes cloud-crossing {
+  from { left: 108%; }
+  to { left: -38%; }
+}
+.parallax-cloud {
+  animation-name: cloud-crossing;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: left;
+}
+
+@keyframes streetlight-glow {
+  0%, 100% { opacity: 0.58; filter: blur(2px) saturate(1.06); }
+  50% { opacity: 0.82; filter: blur(2px) saturate(1.16); }
+}
+.streetlight-aura {
+  position: absolute;
+  border-radius: 9999px;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255, 250, 213, 0.98) 0 3%, rgba(255, 195, 83, 0.7) 10%, rgba(242, 139, 38, 0.24) 28%, transparent 66%),
+    radial-gradient(ellipse at 50% 76%, rgba(255, 183, 66, 0.15), transparent 70%);
+  filter: blur(2px) saturate(1.1);
+  animation: streetlight-glow 3.8s ease-in-out infinite;
+}
+.streetlight-aura-primary {
+  left: 45.2%;
+  top: -1%;
+  width: clamp(72px, 9vw, 138px);
+  height: clamp(120px, 23vh, 220px);
+}
+.streetlight-aura-secondary {
+  right: 0.5%;
+  top: 29%;
+  width: clamp(58px, 7vw, 110px);
+  height: clamp(96px, 18vh, 165px);
+  animation-delay: -1.7s;
+  opacity: 0.72;
+}
+
 /* SVG variant: transform-box/origin makes scale() pivot on the circle's
    own center instead of the <svg> viewport origin. */
 .svg-star {
@@ -227,7 +267,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow {
+  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow, .parallax-cloud, .streetlight-aura {
     animation: none;
   }
 }

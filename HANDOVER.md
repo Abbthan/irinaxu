@@ -624,6 +624,22 @@ as an implementation record; every item below was completed on
   pale house walls and roofs. The sun/moon arc was raised and placed
   above the mountain stack while the mountain offsets stayed exactly at
   `assembleY(26, 23)` as requested.
+
+### Atmospheric refinement — 2026-08-12
+
+- The sun/moon arc was lowered from `ARC_CENTER_Y_VH=43` to `48` after
+  visual feedback; the mountain layer remains untouched at
+  `assembleY(26, 23)`.
+- Night foreground foliage received a stricter, canopy-local alpha cleanup
+  to remove the remaining pale background islands without modifying the
+  architecture. Warm CSS light auras now emphasize the two painted
+  streetlamps during the day-to-night phase.
+- Three generated gouache cloud sprites (`parallax-cloud-1/2/3.png`) match
+  the existing warm blue/cream mountain palette. They continuously travel
+  right-to-left, share a subtle cursor offset, and the entire cloud field
+  moves upward and fades away by scene progress `0.30`; reverse scrolling
+  restores it. There are exactly three cloud elements, so more than three
+  can never be visible simultaneously.
 - `tsc --noEmit` and `npm run lint` passed. The production build passed
   with `npx next build --webpack`; default Turbopack could not run its
   internal port-binding worker inside the restricted verification
