@@ -87,7 +87,7 @@ export function HeroScene() {
             width={1264}
             height={808}
             sizes="112vw"
-            className="absolute top-[4vh] left-[-6%] h-auto w-[112%] origin-center scale-x-[-1] opacity-85"
+            className="absolute top-[4vh] left-0 h-auto w-[112%] origin-center scale-x-[-1] opacity-85"
             unoptimized
           />
           <Image
@@ -96,7 +96,7 @@ export function HeroScene() {
             width={1264}
             height={808}
             sizes="116vw"
-            className="absolute top-[6.5vh] left-[-14%] h-auto w-[116%] opacity-75"
+            className="absolute top-[6.5vh] left-[-10%] h-auto w-[116%] opacity-75"
             unoptimized
           />
           <Image
@@ -105,7 +105,7 @@ export function HeroScene() {
             width={1264}
             height={808}
             sizes="108vw"
-            className="absolute top-[1.5vh] left-[-2%] h-auto w-[108%]"
+            className="absolute top-[1.5vh] left-0 h-auto w-[108%]"
             unoptimized
           />
         </div>

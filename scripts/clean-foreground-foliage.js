@@ -33,6 +33,63 @@ function inDayRecoveryZone(x, y) {
   );
 }
 
+function clearLampSkyPocket(output) {
+  const left = 555;
+  const right = 590;
+  const top = 168;
+  const bottom = 204;
+  const localWidth = right - left;
+  const localHeight = bottom - top;
+  const barrier = new Uint8Array(localWidth * localHeight);
+  const exterior = new Uint8Array(localWidth * localHeight);
+  const queue = [];
+
+  for (let y = top; y < bottom; y += 1) {
+    for (let x = left; x < right; x += 1) {
+      const pixel = (y * WIDTH + x) * 4;
+      const local = (y - top) * localWidth + (x - left);
+      // Dark, strongly opaque painted pixels are the bracket's metal edge.
+      barrier[local] = output[pixel + 3] > 150 && Math.max(output[pixel], output[pixel + 1], output[pixel + 2]) < 150 ? 1 : 0;
+    }
+  }
+
+  const enqueue = (local) => {
+    if (local < 0 || local >= exterior.length || barrier[local] || exterior[local]) return;
+    exterior[local] = 1;
+    queue.push(local);
+  };
+  for (let x = 0; x < localWidth; x += 1) {
+    enqueue(x);
+    enqueue((localHeight - 1) * localWidth + x);
+  }
+  for (let y = 0; y < localHeight; y += 1) {
+    enqueue(y * localWidth);
+    enqueue(y * localWidth + localWidth - 1);
+  }
+  while (queue.length) {
+    const current = queue.pop();
+    const x = current % localWidth;
+    if (x > 0) enqueue(current - 1);
+    if (x < localWidth - 1) enqueue(current + 1);
+    enqueue(current - localWidth);
+    enqueue(current + localWidth);
+  }
+
+  // Any non-metal pixel the exterior flood cannot reach is enclosed by the
+  // bracket. Remove that entire island, including its darker speckles.
+  for (let y = top; y < bottom; y += 1) {
+    for (let x = left; x < right; x += 1) {
+      const local = (y - top) * localWidth + (x - left);
+      if (barrier[local] || exterior[local]) continue;
+      const pixel = (y * WIDTH + x) * 4;
+      output[pixel] = 0;
+      output[pixel + 1] = 0;
+      output[pixel + 2] = 0;
+      output[pixel + 3] = 0;
+    }
+  }
+}
+
 async function recoverDayFoliage(rawDayPath, dayPath) {
   const raw = await sharp(rawDayPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
   const day = await sharp(dayPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -139,8 +196,8 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
   // branches. The soft distance ramp keeps dark twigs and real blue leaves,
   // while near-white enclosed canvas becomes fully transparent.
   const backgroundLevel = 253;
-  const transparentDistance = 112;
-  const opaqueDistance = 208;
+  const transparentDistance = 170;
+  const opaqueDistance = 240;
 
   for (let y = 0; y < Math.min(raw.info.height, HEIGHT); y += 1) {
     for (let x = 0; x < WIDTH; x += 1) {
@@ -163,6 +220,7 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
       }
     }
   }
+  clearLampSkyPocket(output);
 
   const temporaryPath = `${nightPath}.recovered`;
   await sharp(output, { raw: night.info }).png().toFile(temporaryPath);

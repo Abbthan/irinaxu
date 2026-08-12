@@ -180,8 +180,12 @@ body {
 }
 
 @keyframes streetlight-glow {
-  0%, 100% { opacity: 0.58; filter: blur(2px) saturate(1.06); }
-  50% { opacity: 0.82; filter: blur(2px) saturate(1.16); }
+  0%, 100% { opacity: 0.5; filter: blur(2px) saturate(1.02) brightness(0.92); }
+  24% { opacity: 0.68; filter: blur(2px) saturate(1.1) brightness(1.02); }
+  28% { opacity: 0.58; filter: blur(2px) saturate(1.06) brightness(0.96); }
+  52% { opacity: 0.86; filter: blur(2px) saturate(1.2) brightness(1.12); }
+  73% { opacity: 0.62; filter: blur(2px) saturate(1.08) brightness(0.98); }
+  77% { opacity: 0.75; filter: blur(2px) saturate(1.14) brightness(1.06); }
 }
 .streetlight-aura {
   position: absolute;
@@ -191,7 +195,7 @@ body {
     radial-gradient(circle at 50% 24%, rgba(255, 250, 213, 0.98) 0 3%, rgba(255, 195, 83, 0.7) 10%, rgba(242, 139, 38, 0.24) 28%, transparent 66%),
     radial-gradient(ellipse at 50% 76%, rgba(255, 183, 66, 0.15), transparent 70%);
   filter: blur(2px) saturate(1.1);
-  animation: streetlight-glow 3.8s ease-in-out infinite;
+  animation: streetlight-glow 4.6s ease-in-out infinite;
 }
 .streetlight-aura-primary {
   left: 49.9%;
