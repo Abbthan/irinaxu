@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 
 // Fixed (not Math.random-at-render) so server and client markup match.
@@ -17,11 +18,9 @@ const STARS = [
   { top: 12, left: 95, size: 1.5, dur: 5.0, delay: -2.2, bright: false },
 ] as const;
 
-// This is now the SECOND stage the reader reaches, after the black
-// wheatfield in VillageParallaxScene has fully covered the previous
-// scene — the cursor-light stays purely on this later, quieter moment,
-// not the parallax village scroll (per the brief: keep it here, not
-// earlier).
+// This is the second stage the reader reaches. Its wheat-and-black divider
+// is the page's own leading edge, so the page itself rises over the pinned
+// night landscape rather than a separate full-screen black cover doing so.
 export function HeroScene() {
   const stageRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
@@ -60,11 +59,49 @@ export function HeroScene() {
   }, [reduceMotion]);
 
   return (
-    <section
-      ref={stageRef}
-      className="light-beam-stage relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-dusk px-6 text-center"
-      style={{ ["--beam-x" as string]: "50%", ["--beam-y" as string]: "34%" }}
-    >
+    <section className="relative w-full" data-next-page-reveal>
+      {/* Preserve the original wheat treatment: transparent artwork zone
+          first, followed by only the original small 18vh black strip. This
+          whole 48vh divider stays below the viewport until the completed
+          night still has had its scroll beat, then travels with this page. */}
+      <div aria-hidden className="pointer-events-none relative h-[48vh] w-full overflow-hidden">
+        <div className="absolute top-0 left-0 h-[30vh] w-full overflow-hidden">
+          <Image
+            src="/images/parallax-wheatfield.png"
+            alt=""
+            width={1264}
+            height={808}
+            sizes="112vw"
+            className="absolute top-[4vh] left-[-6%] h-auto w-[112%] origin-center scale-x-[-1] opacity-85"
+            unoptimized
+          />
+          <Image
+            src="/images/parallax-wheatfield.png"
+            alt=""
+            width={1264}
+            height={808}
+            sizes="116vw"
+            className="absolute top-[6.5vh] left-[-14%] h-auto w-[116%] opacity-75"
+            unoptimized
+          />
+          <Image
+            src="/images/parallax-wheatfield.png"
+            alt=""
+            width={1264}
+            height={808}
+            sizes="108vw"
+            className="absolute top-[1.5vh] left-[-2%] h-auto w-[108%]"
+            unoptimized
+          />
+        </div>
+        <div className="absolute bottom-0 left-0 h-[18vh] w-full bg-black" />
+      </div>
+
+      <div
+        ref={stageRef}
+        className="light-beam-stage relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-dusk px-6 text-center"
+        style={{ ["--beam-x" as string]: "50%", ["--beam-y" as string]: "34%" }}
+      >
       <div aria-hidden className="pointer-events-none absolute inset-0">
         {STARS.map((s, i) => (
           <span
@@ -101,9 +138,10 @@ export function HeroScene() {
         </p>
       </div>
 
-      <div className="absolute bottom-10 flex flex-col items-center gap-2 text-dusk-ink/50">
-        <span className="font-hand text-lg">Scroll to begin</span>
-        <span className="h-8 w-px bg-dusk-ink/30" />
+        <div className="absolute bottom-10 flex flex-col items-center gap-2 text-dusk-ink/50">
+          <span className="font-hand text-lg">Scroll to begin</span>
+          <span className="h-8 w-px bg-dusk-ink/30" />
+        </div>
       </div>
     </section>
   );

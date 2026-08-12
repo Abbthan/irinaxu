@@ -11,7 +11,7 @@ import { useReducedMotion } from "framer-motion";
 // frame (mount-time entrance, or scroll-driven position), never opacity.
 const PHASE_A_END = 0.38; // parallax assembly
 const PHASE_B_END = 0.68; // position locked, day -> night
-// phase C (0.68 -> 1): black wheatfield rises to cover
+// phase C (0.68 -> 1): the following page rises over this pinned scene
 
 // Sun/moon share one quarter-circle arc: a center point below the
 // mountains, swept from 180deg (level with the center, off to the side)
@@ -39,11 +39,6 @@ function assembleY(fromVh: number, toVh: number): string {
 }
 
 const DAYNIGHT_T = phaseT(PHASE_A_END, PHASE_B_END);
-
-function coverY(): string {
-  const t = phaseT(PHASE_B_END, 1);
-  return `calc(100% - (100% * ${t}))`;
-}
 
 function cloudExitY(): string {
   const t = phaseT(0, 0.24);
@@ -523,47 +518,6 @@ export function VillageParallaxScene() {
           </div>
         </div>
 
-        {/* Wheat wipe — the NIGHT scene remains pinned and completely still
-            throughout phase C while this full-viewport black curtain rises
-            over it. The wheat protrudes above the curtain as its irregular
-            leading edge; by the end, black covers the entire stage and joins
-            the black page below without exposing a seam. */}
-        <div
-          aria-hidden
-          data-wheat-cover
-          className="pointer-events-none absolute inset-0 overflow-visible bg-black"
-          style={{ zIndex: 6, transform: `translateY(${reduceMotion ? "0%" : coverY()})` }}
-        >
-          <div className="absolute bottom-full left-0 z-10 h-[30vh] w-full overflow-hidden">
-            <Image
-              src="/images/parallax-wheatfield.png"
-              alt=""
-              width={1264}
-              height={808}
-              sizes="112vw"
-              className="absolute top-[4vh] left-[-6%] h-auto w-[112%] origin-center scale-x-[-1] opacity-85"
-              unoptimized
-            />
-            <Image
-              src="/images/parallax-wheatfield.png"
-              alt=""
-              width={1264}
-              height={808}
-              sizes="116vw"
-              className="absolute top-[6.5vh] left-[-14%] h-auto w-[116%] opacity-75"
-              unoptimized
-            />
-            <Image
-              src="/images/parallax-wheatfield.png"
-              alt=""
-              width={1264}
-              height={808}
-              sizes="108vw"
-              className="absolute top-[1.5vh] left-[-2%] h-auto w-[108%]"
-              unoptimized
-            />
-          </div>
-        </div>
       </section>
     </div>
   );

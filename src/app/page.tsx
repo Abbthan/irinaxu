@@ -16,7 +16,13 @@ export default function Home() {
       <main>
         <div id="top" />
         <VillageParallaxScene />
-        <HeroScene />
+        {/* The final 102.4vh of the village track is its phase-C reveal.
+            Pulling the next page upward by that exact distance lets the
+            page itself—not a synthetic full-screen black block—rise over
+            the pinned night landscape. */}
+        <div className="relative z-10 -mt-[102.4vh]">
+          <HeroScene />
+        </div>
 
         <ActSection
           id="act-i"
