@@ -353,41 +353,6 @@ export function VillageParallaxScene() {
           ))}
         </div>
 
-        {/* Three painterly clouds drift right-to-left only in the opening
-            tableau. Scroll carries the entire cloud field upward before
-            the day/night phase starts; reversing the scroll restores it. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-          style={{
-            zIndex: 3,
-            opacity: reduceMotion ? 0.74 : `calc(1 - ${phaseT(0.18, 0.3)})`,
-            transform: reduceMotion
-              ? "none"
-              : `translate3d(${pointer(7, 3.5).x}, calc(${cloudExitY()} + ${pointer(7, 3.5).y}), 0)`,
-          }}
-        >
-          {[
-            { src: "/images/parallax-cloud-1.png", width: "24vw", top: "13vh", duration: "55s", delay: "-5s" },
-            { src: "/images/parallax-cloud-2.png", width: "16vw", top: "29vh", duration: "66s", delay: "-29s" },
-            { src: "/images/parallax-cloud-3.png", width: "21vw", top: "7vh", duration: "61s", delay: "-47s" },
-          ].map((cloud, index) => (
-            <div
-              key={cloud.src}
-              className={reduceMotion ? "absolute" : "parallax-cloud absolute"}
-              style={{
-                top: cloud.top,
-                width: cloud.width,
-                aspectRatio: index === 0 ? "537 / 282" : index === 1 ? "359 / 120" : "449 / 215",
-                animationDuration: cloud.duration,
-                animationDelay: cloud.delay,
-              }}
-            >
-              <Image src={cloud.src} alt="" fill sizes={cloud.width} className="object-contain" unoptimized />
-            </div>
-          ))}
-        </div>
-
         {/* sun — high and bright at rest, retreats around the arc with an accelerating
             ease-in; also drifts gently with the cursor, on top of its
             scroll-driven arc position. Cursor-drift depth ordering across
@@ -424,6 +389,45 @@ export function VillageParallaxScene() {
           }}
         >
           <Image src="/images/parallax-moon.png" alt="" fill sizes="9vw" className="object-contain" />
+        </div>
+
+        {/* Three painterly clouds drift right-to-left only in the opening
+            tableau. This block deliberately follows the sun and moon in
+            paint order, so clouds pass IN FRONT of both celestial bodies;
+            the landscape layers that follow still naturally occlude the
+            clouds at the horizon. Scroll carries the entire cloud field
+            upward before the day/night phase starts, and reversing the
+            scroll restores it. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+          style={{
+            zIndex: 3,
+            opacity: reduceMotion ? 0.74 : `calc(1 - ${phaseT(0.18, 0.3)})`,
+            transform: reduceMotion
+              ? "none"
+              : `translate3d(${pointer(7, 3.5).x}, calc(${cloudExitY()} + ${pointer(7, 3.5).y}), 0)`,
+          }}
+        >
+          {[
+            { src: "/images/parallax-cloud-1.png", width: "24vw", top: "13vh", duration: "55s", delay: "-5s" },
+            { src: "/images/parallax-cloud-2.png", width: "16vw", top: "29vh", duration: "66s", delay: "-29s" },
+            { src: "/images/parallax-cloud-3.png", width: "21vw", top: "7vh", duration: "61s", delay: "-47s" },
+          ].map((cloud, index) => (
+            <div
+              key={cloud.src}
+              className={reduceMotion ? "absolute" : "parallax-cloud absolute"}
+              style={{
+                top: cloud.top,
+                width: cloud.width,
+                aspectRatio: index === 0 ? "537 / 282" : index === 1 ? "359 / 120" : "449 / 215",
+                animationDuration: cloud.duration,
+                animationDelay: cloud.delay,
+              }}
+            >
+              <Image src={cloud.src} alt="" fill sizes={cloud.width} className="object-contain" unoptimized />
+            </div>
+          ))}
         </div>
 
         {/* mountains — farthest, barely moves, first to arrive. Measured
@@ -492,7 +496,7 @@ export function VillageParallaxScene() {
             exposed at the true viewport edge. */}
         <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-full" style={{ zIndex: 4 }}>
           <div
-            className="origin-bottom scale-[1.14]"
+            className="relative origin-bottom scale-[1.14]"
             style={{ transform: `translate3d(${pointer(22, 4).x}, calc(${assembleY(85, 3)} + ${pointer(22, 4).y}), 0)` }}
           >
             <DayNightPair
@@ -503,19 +507,20 @@ export function VillageParallaxScene() {
               box="aspect-[1264/791]"
               dropShadow
             />
-          </div>
-        </div>
 
-        {/* Warm pools of light around the foreground streetlamps. They
-            emerge with night, softly illuminating air and ground without
-            redrawing or blurring the painted lamp posts themselves. */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{ zIndex: 5, opacity: reduceMotion ? 0 : DAYNIGHT_T }}
-        >
-          <div className="streetlight-aura streetlight-aura-primary" />
-          <div className="streetlight-aura streetlight-aura-secondary" />
+            {/* These pools live in the same coordinate space as the
+                foreground artwork. Their percentage anchors are measured
+                from the 1264 x 791 original composition box, so scaling,
+                scroll assembly, and pointer parallax keep each pool tied
+                to its painted lamp head. */}
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{ opacity: reduceMotion ? 0 : DAYNIGHT_T }}
+            >
+              <div className="streetlight-aura streetlight-aura-primary" />
+              <div className="streetlight-aura streetlight-aura-secondary" />
+            </div>
+          </div>
         </div>
 
         {/* black wheatfield — a short curtain rising from below at rest,

@@ -194,16 +194,18 @@ body {
   animation: streetlight-glow 3.8s ease-in-out infinite;
 }
 .streetlight-aura-primary {
-  left: 45.2%;
-  top: -1%;
-  width: clamp(72px, 9vw, 138px);
-  height: clamp(120px, 23vh, 220px);
+  left: 49.9%;
+  top: 13%;
+  width: 9%;
+  height: 28%;
+  transform: translateX(-50%);
 }
 .streetlight-aura-secondary {
-  right: 0.5%;
-  top: 29%;
-  width: clamp(58px, 7vw, 110px);
-  height: clamp(96px, 18vh, 165px);
+  left: 95.2%;
+  top: 41.3%;
+  width: 7%;
+  height: 20%;
+  transform: translateX(-50%);
   animation-delay: -1.7s;
   opacity: 0.72;
 }
