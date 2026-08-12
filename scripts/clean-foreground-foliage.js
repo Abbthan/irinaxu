@@ -22,6 +22,13 @@ const DAY_RECOVERY_ZONES = [
 ];
 
 function inCanopy(x, y) {
+  // The left canopy overlaps the first house in the source artwork. Keep the
+  // cleanup above its sloping roofline so pale blue roof paint and lit windows
+  // are never mistaken for remnants of the white matte.
+  const belowFirstRoofline =
+    x > 55 && x < 525 && y >= 150 + 0.29 * x;
+  if (belowFirstRoofline) return false;
+
   return CANOPY_ZONES.some(
     (zone) => x > zone.left && x < zone.right && y > zone.top && y < zone.bottom,
   );
@@ -33,7 +40,7 @@ function inDayRecoveryZone(x, y) {
   );
 }
 
-function clearLampSkyPocket(output) {
+function clearLampSkyPocket(output, edgeBrightnessLimit = 150) {
   const left = 555;
   const right = 590;
   const top = 168;
@@ -49,7 +56,11 @@ function clearLampSkyPocket(output) {
       const pixel = (y * WIDTH + x) * 4;
       const local = (y - top) * localWidth + (x - left);
       // Dark, strongly opaque painted pixels are the bracket's metal edge.
-      barrier[local] = output[pixel + 3] > 150 && Math.max(output[pixel], output[pixel + 1], output[pixel + 2]) < 150 ? 1 : 0;
+      barrier[local] =
+        output[pixel + 3] > 150 &&
+        Math.max(output[pixel], output[pixel + 1], output[pixel + 2]) < edgeBrightnessLimit
+          ? 1
+          : 0;
     }
   }
 
@@ -81,6 +92,22 @@ function clearLampSkyPocket(output) {
     for (let x = left; x < right; x += 1) {
       const local = (y - top) * localWidth + (x - left);
       if (barrier[local] || exterior[local]) continue;
+      const pixel = (y * WIDTH + x) * 4;
+      output[pixel] = 0;
+      output[pixel + 1] = 0;
+      output[pixel + 2] = 0;
+      output[pixel + 3] = 0;
+    }
+  }
+}
+
+function clearDayLampPocketInterior(output) {
+  // Remove the last anti-aliased canvas flecks inside the bracket. These
+  // coordinates sit two pixels inside each painted rail, so the wooden edges
+  // and their highlights remain untouched.
+  for (let y = 182; y <= 196; y += 1) {
+    for (let x = 565; x <= 580; x += 1) {
+      if (x + y >= 762) continue;
       const pixel = (y * WIDTH + x) * 4;
       output[pixel] = 0;
       output[pixel + 1] = 0;
@@ -129,6 +156,12 @@ async function recoverDayFoliage(rawDayPath, dayPath) {
       output[outputPixel + 3] = recoveredAlpha;
     }
   }
+
+  // Daylight makes the wooden bracket substantially brighter than its night
+  // counterpart, so use a higher edge limit while preserving the same flood-
+  // filled, enclosed-pocket geometry.
+  clearLampSkyPocket(output, 220);
+  clearDayLampPocketInterior(output);
 
   const temporaryPath = `${dayPath}.recovered`;
   await sharp(output, { raw: day.info }).png().toFile(temporaryPath);
