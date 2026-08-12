@@ -133,11 +133,12 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
   }
 
   const output = Buffer.from(night.data);
-  // Only strongly painted night pixels qualify. The broad transition keeps
-  // antialiased twig/leaf edges, while rejecting the near-white matte that
-  // previously filled the enclosed gaps between branches.
-  const transparentDistance = 50;
-  const opaqueDistance = 126;
+  // The source background is a sampled #fdfdfd, not pure white. Remove only
+  // pixels still close to that canvas colour. This is a subtractive cleanup
+  // of the remaining matte rather than a new silhouette extraction, so every
+  // already-cut leaf and branch keeps its existing coverage and colour.
+  const backgroundLevel = 253;
+  const matteDistance = 30;
 
   for (let y = 0; y < Math.min(raw.info.height, HEIGHT); y += 1) {
     for (let x = 0; x < WIDTH; x += 1) {
@@ -148,21 +149,18 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
       const red = raw.data[sourcePixel];
       const green = raw.data[sourcePixel + 1];
       const blue = raw.data[sourcePixel + 2];
-      const whiteDistance = Math.hypot(255 - red, 255 - green, 255 - blue);
-      let alpha = Math.max(
-        0,
-        Math.min(1, (whiteDistance - transparentDistance) / (opaqueDistance - transparentDistance)),
-      );
-      alpha = alpha * alpha * (3 - 2 * alpha);
-      const recoveredAlpha = Math.round(alpha * 255);
+      const whiteDistance = backgroundLevel - Math.min(red, green, blue);
+      if (whiteDistance > matteDistance) continue;
 
-      // This is additive: retain the clean sky holes from the silhouette pass
-      // and restore only detail directly supported by the original night art.
-      if (recoveredAlpha <= output[outputPixel + 3] || alpha === 0) continue;
-      output[outputPixel] = Math.max(0, Math.min(255, Math.round((red - 255 * (1 - alpha)) / alpha)));
-      output[outputPixel + 1] = Math.max(0, Math.min(255, Math.round((green - 255 * (1 - alpha)) / alpha)));
-      output[outputPixel + 2] = Math.max(0, Math.min(255, Math.round((blue - 255 * (1 - alpha)) / alpha)));
-      output[outputPixel + 3] = recoveredAlpha;
+      let alpha = Math.max(0, Math.min(1, whiteDistance / matteDistance));
+      alpha = alpha * alpha * (3 - 2 * alpha);
+      const cleanedAlpha = Math.min(output[outputPixel + 3], Math.round(alpha * 255));
+      output[outputPixel + 3] = cleanedAlpha;
+      if (cleanedAlpha === 0) {
+        output[outputPixel] = 0;
+        output[outputPixel + 1] = 0;
+        output[outputPixel + 2] = 0;
+      }
     }
   }
 
