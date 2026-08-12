@@ -133,15 +133,14 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
   }
 
   const output = Buffer.from(night.data);
-  // The source background is sampled #fdfdfd. A pixel remains foliage when
-  // either its distance from that canvas OR its blue/green chroma supports
-  // it. Combining both signals removes neutral pale inter-branch islands but
-  // retains thin coloured twigs and leaf edges that distance alone can lose.
+  // The source background is sampled #fdfdfd. Use distance from that canvas
+  // as the matte signal: the former chroma fallback treated cool-tinted white
+  // canvas pixels as foliage, which created the blue sheets visible between
+  // branches. The soft distance ramp keeps dark twigs and real blue leaves,
+  // while near-white enclosed canvas becomes fully transparent.
   const backgroundLevel = 253;
-  const transparentDistance = 100;
-  const opaqueDistance = 180;
-  const transparentChroma = 12;
-  const opaqueChroma = 38;
+  const transparentDistance = 112;
+  const opaqueDistance = 208;
 
   for (let y = 0; y < Math.min(raw.info.height, HEIGHT); y += 1) {
     for (let x = 0; x < WIDTH; x += 1) {
@@ -153,12 +152,9 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
       const green = raw.data[sourcePixel + 1];
       const blue = raw.data[sourcePixel + 2];
       const whiteDistance = Math.hypot(backgroundLevel - red, backgroundLevel - green, backgroundLevel - blue);
-      const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
       let distanceAlpha = Math.max(0, Math.min(1, (whiteDistance - transparentDistance) / (opaqueDistance - transparentDistance)));
-      let chromaAlpha = Math.max(0, Math.min(1, (chroma - transparentChroma) / (opaqueChroma - transparentChroma)));
       distanceAlpha = distanceAlpha * distanceAlpha * (3 - 2 * distanceAlpha);
-      chromaAlpha = chromaAlpha * chromaAlpha * (3 - 2 * chromaAlpha);
-      const cleanedAlpha = Math.round(Math.max(distanceAlpha, chromaAlpha) * 255);
+      const cleanedAlpha = Math.round(distanceAlpha * 255);
       output[outputPixel + 3] = cleanedAlpha;
       if (cleanedAlpha === 0) {
         output[outputPixel] = 0;
