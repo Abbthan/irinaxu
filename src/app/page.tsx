@@ -19,7 +19,10 @@ export default function Home() {
             over the night scene before the village can unpin and move with
             it. At phase B's endpoint this wrapper is exactly one viewport
             below the top, so wheat cannot arrive early. */}
-        <div className="relative z-10 -mt-[252.4vh] bg-paper">
+        {/* Keep the curtain itself transparent so the pinned night scene
+            remains visible through every gap in the wheat artwork. The
+            opaque paper background begins only after HeroScene. */}
+        <div className="relative z-10 -mt-[252.4vh]">
           <HeroScene />
 
           {/* Keep every later section in the same opaque, raised page as the
