@@ -124,13 +124,64 @@ async function cleanNightWithDaySilhouette(dayPath, nightPath) {
   await rename(temporaryPath, nightPath);
 }
 
+async function recoverNightFoliage(rawNightPath, nightPath) {
+  const raw = await sharp(rawNightPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const night = await sharp(nightPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+
+  if (raw.info.width !== WIDTH || night.info.width !== WIDTH || night.info.height !== HEIGHT) {
+    throw new Error("Unexpected foreground dimensions; review canopy zones before running this recovery.");
+  }
+
+  const output = Buffer.from(night.data);
+  // Only strongly painted night pixels qualify. The broad transition keeps
+  // antialiased twig/leaf edges, while rejecting the near-white matte that
+  // previously filled the enclosed gaps between branches.
+  const transparentDistance = 50;
+  const opaqueDistance = 126;
+
+  for (let y = 0; y < Math.min(raw.info.height, HEIGHT); y += 1) {
+    for (let x = 0; x < WIDTH; x += 1) {
+      if (!inCanopy(x, y)) continue;
+
+      const sourcePixel = (y * WIDTH + x) * 3;
+      const outputPixel = (y * WIDTH + x) * 4;
+      const red = raw.data[sourcePixel];
+      const green = raw.data[sourcePixel + 1];
+      const blue = raw.data[sourcePixel + 2];
+      const whiteDistance = Math.hypot(255 - red, 255 - green, 255 - blue);
+      let alpha = Math.max(
+        0,
+        Math.min(1, (whiteDistance - transparentDistance) / (opaqueDistance - transparentDistance)),
+      );
+      alpha = alpha * alpha * (3 - 2 * alpha);
+      const recoveredAlpha = Math.round(alpha * 255);
+
+      // This is additive: retain the clean sky holes from the silhouette pass
+      // and restore only detail directly supported by the original night art.
+      if (recoveredAlpha <= output[outputPixel + 3] || alpha === 0) continue;
+      output[outputPixel] = Math.max(0, Math.min(255, Math.round((red - 255 * (1 - alpha)) / alpha)));
+      output[outputPixel + 1] = Math.max(0, Math.min(255, Math.round((green - 255 * (1 - alpha)) / alpha)));
+      output[outputPixel + 2] = Math.max(0, Math.min(255, Math.round((blue - 255 * (1 - alpha)) / alpha)));
+      output[outputPixel + 3] = recoveredAlpha;
+    }
+  }
+
+  const temporaryPath = `${nightPath}.recovered`;
+  await sharp(output, { raw: night.info }).png().toFile(temporaryPath);
+  await rename(temporaryPath, nightPath);
+}
+
 async function main() {
-  const [dayPath, nightPath, rawDayPath] = process.argv.slice(2);
+  const [dayPath, nightPath, rawDayPath, rawNightPath] = process.argv.slice(2);
   if (!dayPath || !nightPath) {
-    throw new Error("Usage: node scripts/clean-foreground-foliage.js DAY.png NIGHT.png [RAW_DAY.png]");
+    throw new Error("Usage: node scripts/clean-foreground-foliage.js DAY.png NIGHT.png [RAW_DAY.png] [RAW_NIGHT.png]");
   }
   if (rawDayPath) await recoverDayFoliage(rawDayPath, dayPath);
-  await cleanNightWithDaySilhouette(dayPath, nightPath);
+  if (rawNightPath) {
+    await recoverNightFoliage(rawNightPath, nightPath);
+  } else {
+    await cleanNightWithDaySilhouette(dayPath, nightPath);
+  }
 }
 
 main().catch((error) => {

@@ -523,18 +523,18 @@ export function VillageParallaxScene() {
           </div>
         </div>
 
-        {/* Black wheatfield — a short curtain rising from below at rest.
-            The source artwork's TOP contains its naturally staggered seed
-            heads, so these layers are top-anchored instead of object-cover/
-            object-bottom (which used to crop into a flat horizontal slice
-            through the stalks). A mirrored, offset copy fills the open gaps
-            without erasing the irregular leading silhouette. */}
+        {/* Wheat wipe — the NIGHT scene remains pinned and completely still
+            throughout phase C while this full-viewport black curtain rises
+            over it. The wheat protrudes above the curtain as its irregular
+            leading edge; by the end, black covers the entire stage and joins
+            the black page below without exposing a seam. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0"
+          data-wheat-cover
+          className="pointer-events-none absolute inset-0 overflow-visible bg-black"
           style={{ zIndex: 6, transform: `translateY(${reduceMotion ? "0%" : coverY()})` }}
         >
-          <div className="absolute bottom-[18vh] left-0 h-[30vh] w-full overflow-hidden">
+          <div className="absolute bottom-full left-0 z-10 h-[30vh] w-full overflow-hidden">
             <Image
               src="/images/parallax-wheatfield.png"
               alt=""
@@ -563,7 +563,6 @@ export function VillageParallaxScene() {
               unoptimized
             />
           </div>
-          <div className="absolute bottom-0 left-0 h-[18vh] w-full bg-black" />
         </div>
       </section>
     </div>
