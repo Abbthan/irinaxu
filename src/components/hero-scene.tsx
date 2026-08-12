@@ -35,14 +35,29 @@ export function HeroScene() {
     let targetY = 34;
     let currentX = 50;
     let currentY = 34;
+    let pointerSeen = false;
+    let pointerClientX = 0;
+    let pointerClientY = 0;
 
     const onPointerMove = (event: PointerEvent) => {
-      const rect = stage.getBoundingClientRect();
-      targetX = ((event.clientX - rect.left) / rect.width) * 100;
-      targetY = ((event.clientY - rect.top) / rect.height) * 100;
+      pointerSeen = true;
+      pointerClientX = event.clientX;
+      pointerClientY = event.clientY;
     };
 
     const tick = () => {
+      // Keep translating the last viewport-space cursor position into the
+      // stage's local coordinates. The stage moves while the page scrolls,
+      // even when the pointer itself is stationary, so calculating this
+      // only in `pointermove` leaves the beam behind during a scroll.
+      if (pointerSeen) {
+        const rect = stage.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          targetX = ((pointerClientX - rect.left) / rect.width) * 100;
+          targetY = ((pointerClientY - rect.top) / rect.height) * 100;
+        }
+      }
+
       currentX += (targetX - currentX) * 0.045;
       currentY += (targetY - currentY) * 0.045;
       stage.style.setProperty("--beam-x", `${currentX}%`);
