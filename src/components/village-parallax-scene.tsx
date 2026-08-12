@@ -12,6 +12,7 @@ import { useReducedMotion } from "framer-motion";
 const PHASE_A_END = 0.38; // parallax assembly
 const PHASE_B_END = 0.68; // position locked, day -> night
 // phase C (0.68 -> 1): the following page rises over this pinned scene
+const SCENE_SCROLL_VH = 320;
 
 // Sun/moon share one quarter-circle arc: a center point below the
 // mountains, swept from 180deg (level with the center, off to the side)
@@ -36,6 +37,14 @@ function phaseT(start: number, end: number): string {
 function assembleY(fromVh: number, toVh: number): string {
   const t = phaseT(0, PHASE_A_END);
   return `calc((${fromVh} + (${toVh - fromVh}) * ${t}) * 1vh)`;
+}
+
+// The illustrations are naturally sized by viewport width. On ultrawide
+// windows that would also make them climb much too high. This correction
+// preserves their horizontal full bleed while keeping each tier's vertical
+// anchor equivalent to the approved ~1.36:1 reference viewport.
+function responsiveDepthOffset(artHeightVw: number, referenceHeightVh: number): string {
+  return `max(0px, calc(${artHeightVw}vw - ${referenceHeightVh}vh))`;
 }
 
 const DAYNIGHT_T = phaseT(PHASE_A_END, PHASE_B_END);
@@ -178,10 +187,47 @@ export function VillageParallaxScene() {
     const track = trackRef.current;
     if (!track) return;
     let raf = 0;
+    let celestialRaf = 0;
+    let celestialTarget = 0;
+    let celestialCurrent = 0;
+
+    const paintCelestial = (daynightT: number) => {
+      const sunPhase = Math.min(1, Math.max(0, daynightT / 0.5));
+      const moonPhase = Math.min(1, Math.max(0, (daynightT - 0.5) / 0.5));
+      const sunEase = sunPhase * sunPhase;
+      const moonEase = 1 - (1 - moonPhase) * (1 - moonPhase);
+      const arcOffset = (tArc: number) => {
+        const angleDeg = ARC_START_DEG + (ARC_END_DEG - ARC_START_DEG) * tArc;
+        const angleRad = (angleDeg * Math.PI) / 180;
+        return { x: ARC_RADIUS_VH * Math.cos(angleRad), y: -ARC_RADIUS_VH * Math.sin(angleRad) };
+      };
+      const sunArc = arcOffset(1 - sunEase);
+      const moonArc = arcOffset(moonEase);
+      track.style.setProperty("--sun-x", sunArc.x.toFixed(3));
+      track.style.setProperty("--sun-y", sunArc.y.toFixed(3));
+      track.style.setProperty("--moon-x", moonArc.x.toFixed(3));
+      track.style.setProperty("--moon-y", moonArc.y.toFixed(3));
+      track.style.setProperty("--sun-opacity", Math.min(1, Math.max(0, (1 - sunPhase) * 6)).toFixed(3));
+      track.style.setProperty("--moon-opacity", Math.min(1, Math.max(0, moonPhase * 6)).toFixed(3));
+    };
+
+    const animateCelestial = () => {
+      celestialCurrent += (celestialTarget - celestialCurrent) * 0.22;
+      if (Math.abs(celestialTarget - celestialCurrent) < 0.0001) celestialCurrent = celestialTarget;
+      paintCelestial(celestialCurrent);
+      if (celestialCurrent !== celestialTarget) {
+        celestialRaf = requestAnimationFrame(animateCelestial);
+      } else {
+        celestialRaf = 0;
+      }
+    };
+
     const update = () => {
       const rect = track.getBoundingClientRect();
-      const total = rect.height - window.innerHeight;
-      const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
+      // Keep the original movement speed even though the track now includes
+      // an additional sticky tail for the page-over-scene reveal.
+      const timeline = window.innerHeight * (SCENE_SCROLL_VH / 100);
+      const progress = timeline > 0 ? Math.min(1, Math.max(0, -rect.top / timeline)) : 0;
       const daynightT = Math.min(1, Math.max(0, (progress - PHASE_A_END) / (PHASE_B_END - PHASE_A_END)));
       // Sun and moon each get their OWN half of the transition (0-0.5 and
       // 0.5-1) for their full arc traversal, not the whole 0-1 span — so
@@ -190,13 +236,6 @@ export function VillageParallaxScene() {
       // rises through its own half. Splitting it this way is what makes
       // them visibly swap AT the horizon instead of the sun fading out
       // while still high up and the moon fading in already part-risen.
-      const sunPhase = Math.min(1, Math.max(0, daynightT / 0.5));
-      const moonPhase = Math.min(1, Math.max(0, (daynightT - 0.5) / 0.5));
-      // Ease-IN for the dip (accelerating down), ease-OUT for the rise
-      // (decelerating into place) — reversible for free since both are
-      // pure functions of scroll position, not stateful velocity.
-      const sunEase = sunPhase * sunPhase;
-      const moonEase = 1 - (1 - moonPhase) * (1 - moonPhase);
       track.style.setProperty("--scene-progress", progress.toString());
       // Quarter-circle arc: a shared center sits below the mountains: at
       // t_arc=0 the point is level with the center, off to one side
@@ -205,25 +244,8 @@ export function VillageParallaxScene() {
       // is a 90 degree arc that reads as rising up AND to the right, not
       // a straight vertical line — computed here (not in CSS) since plain
       // calc() has no trig functions to rely on.
-      const arcOffset = (tArc: number) => {
-        const angleDeg = ARC_START_DEG + (ARC_END_DEG - ARC_START_DEG) * tArc;
-        const angleRad = (angleDeg * Math.PI) / 180;
-        return { x: ARC_RADIUS_VH * Math.cos(angleRad), y: -ARC_RADIUS_VH * Math.sin(angleRad) };
-      };
-      const sunArc = arcOffset(1 - sunEase);
-      const moonArc = arcOffset(moonEase);
-      track.style.setProperty("--sun-x", sunArc.x.toFixed(2));
-      track.style.setProperty("--sun-y", sunArc.y.toFixed(2));
-      track.style.setProperty("--moon-x", moonArc.x.toFixed(2));
-      track.style.setProperty("--moon-y", moonArc.y.toFixed(2));
-      // Opacity stays fully visible through most of the dip/rise, fading
-      // only right at the horizon end of each body's own phase — reads as
-      // "sinks down, then disappears behind the mountains" / "emerges
-      // from behind the mountains, then rises", not an independent fade.
-      const sunOpacity = Math.min(1, Math.max(0, (1 - sunPhase) * 6));
-      const moonOpacity = Math.min(1, Math.max(0, moonPhase * 6));
-      track.style.setProperty("--sun-opacity", sunOpacity.toFixed(3));
-      track.style.setProperty("--moon-opacity", moonOpacity.toFixed(3));
+      celestialTarget = daynightT;
+      if (!celestialRaf) celestialRaf = requestAnimationFrame(animateCelestial);
       raf = 0;
     };
     const onScroll = () => {
@@ -236,6 +258,7 @@ export function VillageParallaxScene() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
       if (raf) cancelAnimationFrame(raf);
+      if (celestialRaf) cancelAnimationFrame(celestialRaf);
     };
   }, []);
 
@@ -309,7 +332,7 @@ export function VillageParallaxScene() {
   const moonRestTop = `${ARC_CENTER_Y_VH}vh`;
 
   return (
-    <div ref={trackRef} className="relative h-[420vh]" style={{ ["--scene-progress" as string]: "0" }}>
+    <div ref={trackRef} className="relative h-[570vh]" style={{ ["--scene-progress" as string]: "0" }}>
       <section
         ref={stageRef}
         className="sticky top-0 h-screen w-full overflow-hidden"
@@ -359,7 +382,7 @@ export function VillageParallaxScene() {
           aria-hidden
           className="pointer-events-none absolute aspect-square w-[10vw] max-w-[132px] min-w-[64px]"
           style={{
-            zIndex: 3,
+            zIndex: 1,
             left: reduceMotion ? sunRestLeft : arcLeft("--sun-x"),
             top: reduceMotion ? sunRestTop : arcTop("--sun-y"),
             opacity: reduceMotion ? 1 : "var(--sun-opacity, 1)",
@@ -376,7 +399,7 @@ export function VillageParallaxScene() {
           aria-hidden
           className="pointer-events-none absolute aspect-square w-[9vw] max-w-[118px] min-w-[58px]"
           style={{
-            zIndex: 3,
+            zIndex: 1,
             left: reduceMotion ? moonRestLeft : arcLeft("--moon-x"),
             top: reduceMotion ? moonRestTop : arcTop("--moon-y"),
             opacity: reduceMotion ? 0 : "var(--moon-opacity, 0)",
@@ -397,7 +420,7 @@ export function VillageParallaxScene() {
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden"
           style={{
-            zIndex: 3,
+            zIndex: 1,
             opacity: reduceMotion ? 0.74 : `calc(1 - ${phaseT(0.18, 0.3)})`,
             transform: reduceMotion
               ? "none"
@@ -439,7 +462,7 @@ export function VillageParallaxScene() {
           entranceStyle={off(36)}
           enteredStyle={on}
           delayMs={0}
-          scrollY={assembleY(26, 23)}
+          scrollY={`calc(${assembleY(26, 23)} + ${responsiveDepthOffset(61.8, 84)})`}
           pointerAmp={[6, 3]}
           scaleBuffer={1.04}
         >
@@ -468,7 +491,7 @@ export function VillageParallaxScene() {
           entranceStyle={off(36)}
           enteredStyle={on}
           delayMs={180}
-          scrollY={assembleY(4, -9)}
+          scrollY={`calc(${assembleY(4, -9)} + ${responsiveDepthOffset(26.1, 36)})`}
           pointerAmp={[13, 6]}
           scaleBuffer={1.14}
         >
@@ -492,7 +515,7 @@ export function VillageParallaxScene() {
         <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-full" style={{ zIndex: 4 }}>
           <div
             className="relative origin-bottom scale-[1.14]"
-            style={{ transform: `translate3d(${pointer(22, 4).x}, calc(${assembleY(85, 3)} + ${pointer(22, 4).y}), 0)` }}
+            style={{ transform: `translate3d(${pointer(22, 4).x}, calc(${assembleY(85, 3)} + ${responsiveDepthOffset(62.6, 86)} + ${pointer(22, 4).y}), 0)` }}
           >
             <DayNightPair
               day="/images/parallax-main-village-day.png"

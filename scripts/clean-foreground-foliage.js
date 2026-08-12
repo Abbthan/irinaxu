@@ -133,12 +133,15 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
   }
 
   const output = Buffer.from(night.data);
-  // The source background is a sampled #fdfdfd, not pure white. Remove only
-  // pixels still close to that canvas colour. This is a subtractive cleanup
-  // of the remaining matte rather than a new silhouette extraction, so every
-  // already-cut leaf and branch keeps its existing coverage and colour.
+  // The source background is sampled #fdfdfd. A pixel remains foliage when
+  // either its distance from that canvas OR its blue/green chroma supports
+  // it. Combining both signals removes neutral pale inter-branch islands but
+  // retains thin coloured twigs and leaf edges that distance alone can lose.
   const backgroundLevel = 253;
-  const matteDistance = 30;
+  const transparentDistance = 100;
+  const opaqueDistance = 180;
+  const transparentChroma = 12;
+  const opaqueChroma = 38;
 
   for (let y = 0; y < Math.min(raw.info.height, HEIGHT); y += 1) {
     for (let x = 0; x < WIDTH; x += 1) {
@@ -149,12 +152,13 @@ async function recoverNightFoliage(rawNightPath, nightPath) {
       const red = raw.data[sourcePixel];
       const green = raw.data[sourcePixel + 1];
       const blue = raw.data[sourcePixel + 2];
-      const whiteDistance = backgroundLevel - Math.min(red, green, blue);
-      if (whiteDistance > matteDistance) continue;
-
-      let alpha = Math.max(0, Math.min(1, whiteDistance / matteDistance));
-      alpha = alpha * alpha * (3 - 2 * alpha);
-      const cleanedAlpha = Math.min(output[outputPixel + 3], Math.round(alpha * 255));
+      const whiteDistance = Math.hypot(backgroundLevel - red, backgroundLevel - green, backgroundLevel - blue);
+      const chroma = Math.max(red, green, blue) - Math.min(red, green, blue);
+      let distanceAlpha = Math.max(0, Math.min(1, (whiteDistance - transparentDistance) / (opaqueDistance - transparentDistance)));
+      let chromaAlpha = Math.max(0, Math.min(1, (chroma - transparentChroma) / (opaqueChroma - transparentChroma)));
+      distanceAlpha = distanceAlpha * distanceAlpha * (3 - 2 * distanceAlpha);
+      chromaAlpha = chromaAlpha * chromaAlpha * (3 - 2 * chromaAlpha);
+      const cleanedAlpha = Math.round(Math.max(distanceAlpha, chromaAlpha) * 255);
       output[outputPixel + 3] = cleanedAlpha;
       if (cleanedAlpha === 0) {
         output[outputPixel] = 0;

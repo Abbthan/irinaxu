@@ -1,5 +1,4 @@
 import { SiteNav } from "@/components/site-nav";
-import { ScrollLightLine } from "@/components/scroll-light-line";
 import { VillageParallaxScene } from "@/components/village-parallax-scene";
 import { HeroScene } from "@/components/hero-scene";
 import { ActSection } from "@/components/act-section";
@@ -12,15 +11,15 @@ export default function Home() {
   return (
     <>
       <SiteNav />
-      <ScrollLightLine />
       <main>
         <div id="top" />
         <VillageParallaxScene />
-        {/* The final 102.4vh of the village track is its phase-C reveal.
-            Pulling the next page upward by that exact distance lets the
-            page itself—not a synthetic full-screen black block—rise over
-            the pinned night landscape. */}
-        <div className="relative z-10 -mt-[102.4vh]">
+        {/* Scene animation still occupies its original 320vh scroll span.
+            The longer sticky tail lets this real next page finish travelling
+            over the night scene before the village can unpin and move with
+            it. At phase B's endpoint this wrapper is exactly one viewport
+            below the top, so wheat cannot arrive early. */}
+        <div className="relative z-10 -mt-[252.4vh]">
           <HeroScene />
         </div>
 
