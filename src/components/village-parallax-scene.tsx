@@ -523,17 +523,45 @@ export function VillageParallaxScene() {
           </div>
         </div>
 
-        {/* black wheatfield — a short curtain rising from below at rest,
-            with the wheat itself sitting just above its leading edge (not
-            embedded near its base), so the silhouette reads as grass at
-            ground level with the night rising just behind it. */}
+        {/* Black wheatfield — a short curtain rising from below at rest.
+            The source artwork's TOP contains its naturally staggered seed
+            heads, so these layers are top-anchored instead of object-cover/
+            object-bottom (which used to crop into a flat horizontal slice
+            through the stalks). A mirrored, offset copy fills the open gaps
+            without erasing the irregular leading silhouette. */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{ zIndex: 6, transform: `translateY(${reduceMotion ? "0%" : coverY()})` }}
         >
-          <div className="absolute bottom-[18vh] left-0 h-[20vh] w-full">
-            <Image src="/images/parallax-wheatfield.png" alt="" fill sizes="100vw" className="object-cover object-bottom" />
+          <div className="absolute bottom-[18vh] left-0 h-[30vh] w-full overflow-hidden">
+            <Image
+              src="/images/parallax-wheatfield.png"
+              alt=""
+              width={1264}
+              height={808}
+              sizes="112vw"
+              className="absolute top-[4vh] left-[-6%] h-auto w-[112%] origin-center scale-x-[-1] opacity-85"
+              unoptimized
+            />
+            <Image
+              src="/images/parallax-wheatfield.png"
+              alt=""
+              width={1264}
+              height={808}
+              sizes="116vw"
+              className="absolute top-[6.5vh] left-[-14%] h-auto w-[116%] opacity-75"
+              unoptimized
+            />
+            <Image
+              src="/images/parallax-wheatfield.png"
+              alt=""
+              width={1264}
+              height={808}
+              sizes="108vw"
+              className="absolute top-[1.5vh] left-[-2%] h-auto w-[108%]"
+              unoptimized
+            />
           </div>
           <div className="absolute bottom-0 left-0 h-[18vh] w-full bg-black" />
         </div>
