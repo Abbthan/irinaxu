@@ -14,10 +14,68 @@ const CANOPY_ZONES = [
   { left: 900, top: 155, right: 1215, bottom: 500 },
 ];
 
+// Day recovery is deliberately shallower than night cleanup: it stops above
+// the architecture and only restores foliage against the original white sky.
+const DAY_RECOVERY_ZONES = [
+  { left: 55, top: 0, right: 525, bottom: 315 },
+  { left: 890, top: 155, right: 1195, bottom: 455 },
+];
+
 function inCanopy(x, y) {
   return CANOPY_ZONES.some(
     (zone) => x > zone.left && x < zone.right && y > zone.top && y < zone.bottom,
   );
+}
+
+function inDayRecoveryZone(x, y) {
+  return DAY_RECOVERY_ZONES.some(
+    (zone) => x > zone.left && x < zone.right && y > zone.top && y < zone.bottom,
+  );
+}
+
+async function recoverDayFoliage(rawDayPath, dayPath) {
+  const raw = await sharp(rawDayPath).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+  const day = await sharp(dayPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+
+  if (raw.info.width !== WIDTH || day.info.width !== WIDTH || day.info.height !== HEIGHT) {
+    throw new Error("Unexpected foreground dimensions; review canopy zones before running this recovery.");
+  }
+
+  const output = Buffer.from(day.data);
+  const transparentDistance = 4;
+  const opaqueDistance = 62;
+
+  for (let y = 0; y < Math.min(raw.info.height, HEIGHT); y += 1) {
+    for (let x = 0; x < WIDTH; x += 1) {
+      if (!inDayRecoveryZone(x, y)) continue;
+
+      const sourcePixel = (y * WIDTH + x) * 3;
+      const outputPixel = (y * WIDTH + x) * 4;
+      const red = raw.data[sourcePixel];
+      const green = raw.data[sourcePixel + 1];
+      const blue = raw.data[sourcePixel + 2];
+      const whiteDistance = Math.hypot(255 - red, 255 - green, 255 - blue);
+      let alpha = Math.max(
+        0,
+        Math.min(1, (whiteDistance - transparentDistance) / (opaqueDistance - transparentDistance)),
+      );
+      alpha = alpha * alpha * (3 - 2 * alpha);
+      const recoveredAlpha = Math.round(alpha * 255);
+
+      // Add back only source-supported coverage that the existing mask lost.
+      // Never reduce or recolor an already-opaque pixel, which keeps every
+      // roof, wall, and surviving leaf exactly as deployed.
+      if (recoveredAlpha <= output[outputPixel + 3]) continue;
+      output[outputPixel] = Math.max(0, Math.min(255, Math.round((red - 255 * (1 - alpha)) / alpha)));
+      output[outputPixel + 1] = Math.max(0, Math.min(255, Math.round((green - 255 * (1 - alpha)) / alpha)));
+      output[outputPixel + 2] = Math.max(0, Math.min(255, Math.round((blue - 255 * (1 - alpha)) / alpha)));
+      output[outputPixel + 3] = recoveredAlpha;
+    }
+  }
+
+  const temporaryPath = `${dayPath}.recovered`;
+  await sharp(output, { raw: day.info }).png().toFile(temporaryPath);
+  await rename(temporaryPath, dayPath);
 }
 
 async function cleanNightWithDaySilhouette(dayPath, nightPath) {
@@ -67,10 +125,11 @@ async function cleanNightWithDaySilhouette(dayPath, nightPath) {
 }
 
 async function main() {
-  const [dayPath, nightPath] = process.argv.slice(2);
+  const [dayPath, nightPath, rawDayPath] = process.argv.slice(2);
   if (!dayPath || !nightPath) {
-    throw new Error("Usage: node scripts/clean-foreground-foliage.js DAY.png NIGHT.png");
+    throw new Error("Usage: node scripts/clean-foreground-foliage.js DAY.png NIGHT.png [RAW_DAY.png]");
   }
+  if (rawDayPath) await recoverDayFoliage(rawDayPath, dayPath);
   await cleanNightWithDaySilhouette(dayPath, nightPath);
 }
 
