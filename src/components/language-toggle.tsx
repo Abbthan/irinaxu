@@ -29,7 +29,7 @@ export function LanguageToggle() {
           englishSelected ? "opacity-100 grayscale-0" : "opacity-35 grayscale",
         )}
       >
-        🇬🇧
+        🇺🇸
       </span>
       <span
         className={cn(

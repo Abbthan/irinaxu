@@ -130,6 +130,23 @@ body {
   .light-beam-stage::before { animation: none; }
 }
 
+/* A restrained, buoyant scroll cue: the long easing makes each turnaround
+   retain a little visual momentum instead of reading as a mechanical bounce. */
+@keyframes scroll-invitation-float {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-9px); }
+  58% { transform: translateY(-8px); }
+}
+
+.scroll-invitation {
+  animation: scroll-invitation-float 3.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-invitation { animation: none; }
+}
+
 /* Ghost watermark — an oversized, near-invisible word behind hero content,
    rsnc.ai's signature move. */
 .ghost-watermark {
