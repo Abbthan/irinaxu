@@ -24,9 +24,9 @@
   --color-roof: #0f1128;
   --color-path: #3a3660;
 
-  --font-display: var(--font-fraunces);
-  --font-body: var(--font-newsreader);
-  --font-hand: var(--font-caveat);
+  --font-display: "Fraunces Variable", Georgia, serif;
+  --font-body: "Newsreader Variable", Georgia, serif;
+  --font-hand: "Caveat Variable", cursive;
 
   /* The exact entrance curve measured off rsnc.ai's own page-load choreography
      (getAnimations() -> cubic-bezier(0.16, 1, 0.3, 1), ~760-1120ms per element).

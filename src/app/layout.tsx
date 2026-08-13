@@ -1,29 +1,12 @@
 import type { Metadata } from "next";
-import { Fraunces, Newsreader, Caveat } from "next/font/google";
 import { LocaleProvider, PREPAINT_LOCALE_SCRIPT } from "@/lib/i18n/locale-provider";
 import { LocaleTextTranslator } from "@/components/locale-text-translator";
+import "@fontsource-variable/fraunces/full.css";
+import "@fontsource-variable/fraunces/full-italic.css";
+import "@fontsource-variable/newsreader/wght.css";
+import "@fontsource-variable/newsreader/wght-italic.css";
+import "@fontsource-variable/caveat/wght.css";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin"],
-  axes: ["opsz", "SOFT", "WONK"],
-  weight: "variable",
-  style: ["normal", "italic"],
-});
-
-const newsreader = Newsreader({
-  variable: "--font-newsreader",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  style: ["normal", "italic"],
-});
-
-const caveat = Caveat({
-  variable: "--font-caveat",
-  subsets: ["latin"],
-  weight: ["500", "600"],
-});
 
 export const metadata: Metadata = {
   title: "Irina — Chasing Light",
@@ -34,7 +17,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${newsreader.variable} ${caveat.variable} h-full antialiased`}
+      className="h-full antialiased"
       suppressHydrationWarning
     >
       <head>
