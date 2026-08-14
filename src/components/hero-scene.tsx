@@ -104,35 +104,41 @@ export function HeroScene() {
       >
         <div
           className="absolute top-0 left-[-3%] h-[max(30vh,30vw)] w-[106%] overflow-hidden"
-          style={{ transform: reduceMotion ? undefined : "translate3d(calc(var(--wheat-pointer-x, 0) * 28px), 0, 0)" }}
+          style={{ transform: reduceMotion ? undefined : "translate3d(calc(var(--wheat-pointer-x, 0) * -28px), 0, 0)" }}
         >
-          <Image
-            src="/images/parallax-wheatfield.png"
-            alt=""
-            width={1264}
-            height={808}
-            sizes="112vw"
-            className="absolute top-[4vh] left-0 h-auto w-[112%] origin-center scale-x-[-1] opacity-85"
-            unoptimized
-          />
-          <Image
-            src="/images/parallax-wheatfield.png"
-            alt=""
-            width={1264}
-            height={808}
-            sizes="116vw"
-            className="absolute top-[6.5vh] left-[-10%] h-auto w-[116%] opacity-75"
-            unoptimized
-          />
-          <Image
-            src="/images/parallax-wheatfield.png"
-            alt=""
-            width={1264}
-            height={808}
-            sizes="108vw"
-            className="absolute top-[1.5vh] left-0 h-auto w-[108%]"
-            unoptimized
-          />
+          <div className="wheat-bristle wheat-bristle-slow absolute top-[4vh] left-0 aspect-[1264/808] w-[112%]">
+            <Image
+              src="/images/parallax-wheatfield.png"
+              alt=""
+              width={1264}
+              height={808}
+              sizes="112vw"
+              className="h-auto w-full origin-center scale-x-[-1] opacity-85"
+              unoptimized
+            />
+          </div>
+          <div className="wheat-bristle wheat-bristle-late absolute top-[6.5vh] left-[-10%] aspect-[1264/808] w-[116%]">
+            <Image
+              src="/images/parallax-wheatfield.png"
+              alt=""
+              width={1264}
+              height={808}
+              sizes="116vw"
+              className="h-auto w-full opacity-75"
+              unoptimized
+            />
+          </div>
+          <div className="wheat-bristle absolute top-[1.5vh] left-0 aspect-[1264/808] w-[108%]">
+            <Image
+              src="/images/parallax-wheatfield.png"
+              alt=""
+              width={1264}
+              height={808}
+              sizes="108vw"
+              className="h-auto w-full"
+              unoptimized
+            />
+          </div>
         </div>
         <div className="absolute bottom-0 left-0 h-[18vh] w-full bg-black" />
       </div>

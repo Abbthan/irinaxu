@@ -4,14 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
 
-// Scroll is split into three phases sharing one --scene-progress value
-// (0-1), matching what rsnc.ai actually does: assembly, then a LOCKED
-// stretch where position stops changing and lighting takes over, then a
-// cover. Nothing fades to reveal itself — layers arrive by moving into
-// frame (mount-time entrance, or scroll-driven position), never opacity.
+// Scroll shares one --scene-progress value (0-1): assembly, a LOCKED
+// stretch where position stops changing and lighting changes rapidly,
+// a short night hold, then the following page covers the scene. Nothing
+// fades to reveal its position — layers arrive by moving into frame.
 const PHASE_A_END = 0.38; // parallax assembly
-const PHASE_B_END = 0.68; // position locked, day -> night
-// phase C (0.68 -> 1): the following page rises over this pinned scene
+// Half the former 0.30-wide interval: every consumer of DAYNIGHT_T (sky,
+// stars, artwork crossfades, lamp glow, and celestial arc) now completes
+// in exactly half the scroll distance.
+const PHASE_B_END = 0.53; // position locked, day -> night
+// The following page still begins at the established 0.68 point, retaining
+// the original still-night beat before wheat enters.
 const SCENE_SCROLL_VH = 320;
 
 // Sun/moon share one quarter-circle arc: a center point below the
@@ -65,8 +68,8 @@ function cloudExitY(): string {
 // a separate "depth responds to cursor" system, not tied to scroll at all.
 function pointer(ampX: number, ampY: number): { x: string; y: string } {
   return {
-    x: `calc(var(--pointer-x, 0) * ${ampX}px)`,
-    y: `calc(var(--pointer-y, 0) * ${ampY}px)`,
+    x: `calc(var(--pointer-x, 0) * ${-ampX}px)`,
+    y: `calc(var(--pointer-y, 0) * ${-ampY}px)`,
   };
 }
 
@@ -297,8 +300,8 @@ export function VillageParallaxScene() {
   }, [reduceMotion]);
 
   // Pointer depth-parallax — a spring (position + velocity), not a plain
-  // lerp, for the "momentum" the brief asked for: it can slightly
-  // overshoot before settling instead of just decelerating into place.
+  // lerp, for momentum and a slight overshoot. `pointer()` applies the
+  // inverse sign so every scenic layer travels against cursor direction.
   useEffect(() => {
     if (reduceMotion) return;
     const stage = stageRef.current;

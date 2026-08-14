@@ -196,6 +196,35 @@ body {
   will-change: left;
 }
 
+/* The three offset copies never sway in lockstep, so the wheat reads as
+   individual heads catching a faint breeze instead of one rigid card. */
+@keyframes wheat-bristle {
+  0%, 100% { transform: translateX(-1px) rotate(-0.12deg) skewX(-0.08deg); }
+  48% { transform: translateX(1px) rotate(0.12deg) skewX(0.08deg); }
+  62% { transform: translateX(0.4px) rotate(0.04deg) skewX(0.03deg); }
+}
+.wheat-bristle {
+  transform-origin: 50% 100%;
+  animation: wheat-bristle 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+.wheat-bristle-slow {
+  animation-duration: 4.4s;
+  animation-delay: -1.2s;
+}
+.wheat-bristle-late {
+  animation-duration: 3.9s;
+  animation-delay: -2.6s;
+}
+
+/* Server-rendered first paint is already centered; the client replaces this
+   with exact pixel geometry and a reversible scroll-linked scale/position. */
+.home-title-link {
+  transform: translate3d(calc(50vw - 50%), calc(50vh - 50%), 0) scale(5);
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
 @keyframes streetlight-glow {
   0%, 100% { opacity: 0.5; filter: blur(2px) saturate(1.02) brightness(0.92); }
   24% { opacity: 0.68; filter: blur(2px) saturate(1.1) brightness(1.02); }
@@ -290,7 +319,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow, .parallax-cloud, .streetlight-aura {
+  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow, .parallax-cloud, .streetlight-aura, .wheat-bristle {
     animation: none;
   }
 }

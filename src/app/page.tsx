@@ -15,10 +15,9 @@ export default function Home() {
         <div id="top" />
         <VillageParallaxScene />
         {/* Scene animation still occupies its original 320vh scroll span.
-            The longer sticky tail lets this real next page finish travelling
-            over the night scene before the village can unpin and move with
-            it. At phase B's endpoint this wrapper is exactly one viewport
-            below the top, so wheat cannot arrive early. */}
+            The faster lighting phase now leaves a short still-night beat;
+            at the established curtain-start point this wrapper is exactly
+            one viewport below the top, so wheat still cannot arrive early. */}
         {/* Keep the curtain itself transparent so the pinned night scene
             remains visible through every gap in the wheat artwork. The
             opaque paper background begins only after HeroScene. */}

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import { LanguageToggle } from "./language-toggle";
 
 // Deliberately minimal — just the name and a way to get in touch. Text
@@ -5,11 +8,55 @@ import { LanguageToggle } from "./language-toggle";
 // on the paper acts and light on the dark prologue/epilogue, without any
 // scroll-position tracking.
 export function SiteNav() {
+  const titleRef = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    const title = titleRef.current;
+    if (!title) return;
+    let raf = 0;
+
+    const update = () => {
+      const transitionDistance = window.innerHeight * 0.32;
+      const linearProgress = transitionDistance > 0
+        ? Math.min(1, Math.max(0, window.scrollY / transitionDistance))
+        : 1;
+      const progress = 1 - Math.pow(1 - linearProgress, 3);
+      const width = title.offsetWidth;
+      const height = title.offsetHeight;
+      const startX = (window.innerWidth - width) / 2;
+      const startY = (window.innerHeight - height) / 2;
+      const endX = window.innerWidth >= 640 ? 40 : 24;
+      const endY = 20;
+      const largeScale = Math.min(6, Math.max(4.2, window.innerWidth / 260));
+      const x = startX + (endX - startX) * progress;
+      const y = startY + (endY - startY) * progress;
+      const scale = largeScale + (1 - largeScale) * progress;
+
+      title.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
+      raf = 0;
+    };
+
+    const scheduleUpdate = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    return () => {
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-5 sm:px-10">
+    <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-end px-6 py-5 sm:px-10">
       <a
+        ref={titleRef}
         href="#top"
-        className="font-display text-[15px] tracking-[0.14em] text-white uppercase [mix-blend-mode:difference]"
+        data-home-title
+        className="home-title-link fixed top-0 left-0 font-display text-[15px] tracking-[0.14em] text-white uppercase [mix-blend-mode:difference]"
       >
         Irina
       </a>
