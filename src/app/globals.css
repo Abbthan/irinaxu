@@ -220,8 +220,19 @@ body {
 /* Server-rendered first paint is already centered; the client replaces this
    with exact pixel geometry and a reversible scroll-linked scale/position. */
 .home-title-link {
-  transform: translate3d(calc(50vw - 50%), calc(50vh - 50%), 0) scale(5);
+  transform: translate3d(calc(50vw - 50%), calc(50vh - 50%), 0) scale(5.4);
   transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+@keyframes sun-ray-sway {
+  0%, 100% { transform: rotate(-2.4deg); }
+  50% { transform: rotate(2.4deg); }
+}
+
+.sun-ray-sway {
+  animation: sun-ray-sway 9s ease-in-out infinite;
+  transform-origin: center;
   will-change: transform;
 }
 

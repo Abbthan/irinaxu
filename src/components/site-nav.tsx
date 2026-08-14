@@ -27,7 +27,7 @@ export function SiteNav() {
       const startY = (window.innerHeight - height) / 2;
       const endX = window.innerWidth >= 640 ? 40 : 24;
       const endY = 20;
-      const largeScale = Math.min(6, Math.max(4.2, window.innerWidth / 260));
+      const largeScale = Math.min(6.4, Math.max(4.5, window.innerWidth / 240));
       const x = startX + (endX - startX) * progress;
       const y = startY + (endY - startY) * progress;
       const scale = largeScale + (1 - largeScale) * progress;
@@ -58,7 +58,7 @@ export function SiteNav() {
         data-home-title
         className="home-title-link fixed top-0 left-0 font-display text-[15px] tracking-[0.14em] text-white uppercase [mix-blend-mode:difference]"
       >
-        Irina
+        Irina Xu
       </a>
       <div className="flex items-center gap-6">
         <a

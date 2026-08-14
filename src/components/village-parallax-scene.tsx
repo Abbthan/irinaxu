@@ -412,7 +412,9 @@ export function VillageParallaxScene() {
               : `translateX(-50%) translate3d(${pointer(...POINTER_DEPTH.celestial).x}, ${pointer(...POINTER_DEPTH.celestial).y}, 0)`,
           }}
         >
-          <Image src="/images/parallax-sun.png" alt="" fill sizes="10vw" className="object-contain" />
+          <div className="sun-ray-sway relative h-full w-full">
+            <Image src="/images/parallax-sun.png" alt="" fill sizes="10vw" className="object-contain" />
+          </div>
         </div>
 
         {/* moon — advances around the same arc from under the mountains
