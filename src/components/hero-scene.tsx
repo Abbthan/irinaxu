@@ -22,13 +22,15 @@ const STARS = [
 // is the page's own leading edge, so the page itself rises over the pinned
 // night landscape rather than a separate full-screen black cover doing so.
 export function HeroScene() {
+  const heroRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     if (reduceMotion) return;
     const stage = stageRef.current;
-    if (!stage) return;
+    const hero = heroRef.current;
+    if (!stage || !hero) return;
 
     let raf = 0;
     let targetX = 50;
@@ -38,11 +40,15 @@ export function HeroScene() {
     let pointerSeen = false;
     let pointerClientX = 0;
     let pointerClientY = 0;
+    let wheatTargetX = 0;
+    let wheatX = 0;
+    let wheatVelocityX = 0;
 
     const onPointerMove = (event: PointerEvent) => {
       pointerSeen = true;
       pointerClientX = event.clientX;
       pointerClientY = event.clientY;
+      wheatTargetX = (event.clientX / window.innerWidth) * 2 - 1;
     };
 
     const tick = () => {
@@ -62,6 +68,13 @@ export function HeroScene() {
       currentY += (targetY - currentY) * 0.045;
       stage.style.setProperty("--beam-x", `${currentX}%`);
       stage.style.setProperty("--beam-y", `${currentY}%`);
+
+      // The wheat is the nearest scenic layer, so it receives the largest
+      // pointer amplitude. Only X is written: the black page edge beneath
+      // it remains perfectly still and there is no vertical wheat drift.
+      wheatVelocityX = (wheatVelocityX + (wheatTargetX - wheatX) * 0.02) * 0.88;
+      wheatX += wheatVelocityX;
+      hero.style.setProperty("--wheat-pointer-x", wheatX.toFixed(4));
       raf = requestAnimationFrame(tick);
     };
 
@@ -74,7 +87,12 @@ export function HeroScene() {
   }, [reduceMotion]);
 
   return (
-    <section className="relative w-full" data-next-page-reveal>
+    <section
+      ref={heroRef}
+      className="relative w-full"
+      data-next-page-reveal
+      style={{ ["--wheat-pointer-x" as string]: "0" }}
+    >
       {/* Preserve the original wheat treatment: transparent artwork zone
           first, followed by only the original small 18vh black strip. The
           wheat window grows with width on landscape screens, preventing its
@@ -84,7 +102,10 @@ export function HeroScene() {
         className="pointer-events-none relative w-full overflow-hidden"
         style={{ height: "calc(max(30vh, 30vw) + 18vh)" }}
       >
-        <div className="absolute top-0 left-0 h-[max(30vh,30vw)] w-full overflow-hidden">
+        <div
+          className="absolute top-0 left-[-3%] h-[max(30vh,30vw)] w-[106%] overflow-hidden"
+          style={{ transform: reduceMotion ? undefined : "translate3d(calc(var(--wheat-pointer-x, 0) * 28px), 0, 0)" }}
+        >
           <Image
             src="/images/parallax-wheatfield.png"
             alt=""

@@ -70,6 +70,17 @@ function pointer(ampX: number, ampY: number): { x: string; y: string } {
   };
 }
 
+// Cursor depth hierarchy (farthest -> nearest). The three landscape layers
+// are intentionally only a little faster than their previous 6 / 13 / 22px
+// amplitudes, while retaining clear gaps around the unchanged cloud depth.
+const POINTER_DEPTH = {
+  celestial: [3, 1.5],
+  mountains: [6.6, 3.3],
+  clouds: [7, 3.5],
+  hilltopVillage: [14.5, 6.7],
+  foregroundVillage: [24.5, 4.5],
+} as const;
+
 interface LayerProps {
   entered: boolean;
   z: number;
@@ -382,8 +393,8 @@ export function VillageParallaxScene() {
             ease-in; also drifts gently with the cursor, on top of its
             scroll-driven arc position. Cursor-drift depth ordering across
             the whole scene, slowest to fastest (farthest to closest):
-            sun/moon (3,1.5) < mountains (6,3) < hills-village (13,6) <
-            main-village (22,4) — the sun/moon sit "past" the mountains,
+            sun/moon < mountains < clouds < hills-village < main-village
+            < wheat — the sun/moon sit "past" the mountains,
             so they move even less than the layer in front of them. */}
         <div
           aria-hidden
@@ -393,7 +404,9 @@ export function VillageParallaxScene() {
             left: reduceMotion ? sunRestLeft : arcLeft("--sun-x"),
             top: reduceMotion ? sunRestTop : arcTop("--sun-y"),
             opacity: reduceMotion ? 1 : "var(--sun-opacity, 1)",
-            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(3, 1.5).x}, ${pointer(3, 1.5).y}, 0)`,
+            transform: reduceMotion
+              ? "translateX(-50%)"
+              : `translateX(-50%) translate3d(${pointer(...POINTER_DEPTH.celestial).x}, ${pointer(...POINTER_DEPTH.celestial).y}, 0)`,
           }}
         >
           <Image src="/images/parallax-sun.png" alt="" fill sizes="10vw" className="object-contain" />
@@ -410,7 +423,9 @@ export function VillageParallaxScene() {
             left: reduceMotion ? moonRestLeft : arcLeft("--moon-x"),
             top: reduceMotion ? moonRestTop : arcTop("--moon-y"),
             opacity: reduceMotion ? 0 : "var(--moon-opacity, 0)",
-            transform: reduceMotion ? "translateX(-50%)" : `translateX(-50%) translate3d(${pointer(3, 1.5).x}, ${pointer(3, 1.5).y}, 0)`,
+            transform: reduceMotion
+              ? "translateX(-50%)"
+              : `translateX(-50%) translate3d(${pointer(...POINTER_DEPTH.celestial).x}, ${pointer(...POINTER_DEPTH.celestial).y}, 0)`,
           }}
         >
           <Image src="/images/parallax-moon.png" alt="" fill sizes="9vw" className="object-contain" />
@@ -431,7 +446,7 @@ export function VillageParallaxScene() {
             opacity: reduceMotion ? 0.74 : `calc(1 - ${phaseT(0.18, 0.3)})`,
             transform: reduceMotion
               ? "none"
-              : `translate3d(${pointer(7, 3.5).x}, calc(${cloudExitY()} + ${pointer(7, 3.5).y}), 0)`,
+              : `translate3d(${pointer(...POINTER_DEPTH.clouds).x}, calc(${cloudExitY()} + ${pointer(...POINTER_DEPTH.clouds).y}), 0)`,
           }}
         >
           {[
@@ -470,7 +485,7 @@ export function VillageParallaxScene() {
           enteredStyle={on}
           delayMs={0}
           scrollY={`calc(${assembleY(26, 23)} + ${responsiveDepthOffset(61.8, 84)} + ${wideMountainNudge()})`}
-          pointerAmp={[6, 3]}
+          pointerAmp={[...POINTER_DEPTH.mountains]}
           scaleBuffer={1.04}
         >
           <DayNightPair
@@ -499,7 +514,7 @@ export function VillageParallaxScene() {
           enteredStyle={on}
           delayMs={180}
           scrollY={`calc(${assembleY(4, -9)} + ${responsiveDepthOffset(26.1, 36)})`}
-          pointerAmp={[13, 6]}
+          pointerAmp={[...POINTER_DEPTH.hilltopVillage]}
           scaleBuffer={1.14}
         >
           <DayNightPair
@@ -522,7 +537,9 @@ export function VillageParallaxScene() {
         <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 w-full" style={{ zIndex: 4 }}>
           <div
             className="relative origin-bottom scale-[1.14]"
-            style={{ transform: `translate3d(${pointer(22, 4).x}, calc(${assembleY(85, 3)} + ${responsiveDepthOffset(62.6, 86)} + ${pointer(22, 4).y}), 0)` }}
+            style={{
+              transform: `translate3d(${pointer(...POINTER_DEPTH.foregroundVillage).x}, calc(${assembleY(85, 3)} + ${responsiveDepthOffset(62.6, 86)} + ${pointer(...POINTER_DEPTH.foregroundVillage).y}), 0)`,
+            }}
           >
             <DayNightPair
               day="/images/parallax-main-village-day.png"
