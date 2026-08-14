@@ -75,11 +75,12 @@ function pointer(ampX: number, ampY: number): { x: string; y: string } {
 
 // Cursor depth hierarchy (farthest -> nearest). The three landscape layers
 // are intentionally only a little faster than their previous 6 / 13 / 22px
-// amplitudes, while retaining clear gaps around the unchanged cloud depth.
+// amplitudes. Clouds use a clearly visible range while staying behind the
+// hilltop village in the depth hierarchy.
 const POINTER_DEPTH = {
   celestial: [3, 1.5],
   mountains: [6.6, 3.3],
-  clouds: [7, 3.5],
+  clouds: [12, 6],
   hilltopVillage: [14.5, 6.7],
   foregroundVillage: [24.5, 4.5],
 } as const;
