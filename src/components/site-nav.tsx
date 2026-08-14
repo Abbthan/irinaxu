@@ -81,11 +81,11 @@ export function SiteNav() {
         ref={scrollPromptRef}
         aria-hidden
         data-opening-scroll-prompt
-        className="pointer-events-none fixed inset-x-0 bottom-10 flex justify-center text-white/70 [filter:drop-shadow(0_1px_4px_rgba(17,24,39,0.45))]"
+        className="pointer-events-none fixed inset-x-0 bottom-10 flex justify-center text-white [filter:drop-shadow(0_1px_5px_rgba(0,0,0,0.65))_drop-shadow(0_0_10px_rgba(255,255,255,0.35))]"
       >
         <div className="scroll-invitation flex flex-col items-center gap-2">
           <span className="font-hand text-lg">Scroll to begin</span>
-          <span className="h-8 w-px bg-white/50" />
+          <span className="h-8 w-px bg-white [box-shadow:0_0_8px_rgba(255,255,255,0.8)]" />
         </div>
       </div>
     </header>
