@@ -13,6 +13,7 @@ export function SiteNav() {
   useEffect(() => {
     const title = titleRef.current;
     if (!title) return;
+    const titleText = title.querySelector<HTMLElement>("[data-home-title-text]");
     let raf = 0;
 
     const update = () => {
@@ -33,6 +34,7 @@ export function SiteNav() {
       const scale = largeScale + (1 - largeScale) * progress;
 
       title.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
+      titleText?.classList.toggle("home-title-text--bobbing", linearProgress <= 0.001);
       raf = 0;
     };
 
@@ -58,7 +60,9 @@ export function SiteNav() {
         data-home-title
         className="home-title-link fixed top-0 left-0 font-display text-[15px] tracking-[0.14em] text-white uppercase [mix-blend-mode:difference]"
       >
-        Irina Xu
+        <span data-home-title-text className="home-title-text--bobbing inline-block">
+          Irina Xu
+        </span>
       </a>
       <div className="flex items-center gap-6">
         <a

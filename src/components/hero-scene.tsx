@@ -72,7 +72,7 @@ export function HeroScene() {
       // The wheat is the nearest scenic layer, so it receives the largest
       // pointer amplitude. Only X is written: the black page edge beneath
       // it remains perfectly still and there is no vertical wheat drift.
-      wheatVelocityX = (wheatVelocityX + (wheatTargetX - wheatX) * 0.02) * 0.88;
+      wheatVelocityX = (wheatVelocityX + (wheatTargetX - wheatX) * 0.032) * 0.86;
       wheatX += wheatVelocityX;
       hero.style.setProperty("--wheat-pointer-x", wheatX.toFixed(4));
       raf = requestAnimationFrame(tick);
@@ -104,7 +104,7 @@ export function HeroScene() {
       >
         <div
           className="absolute top-0 left-[-3%] h-[max(30vh,30vw)] w-[106%] overflow-hidden"
-          style={{ transform: reduceMotion ? undefined : "translate3d(calc(var(--wheat-pointer-x, 0) * -28px), 0, 0)" }}
+          style={{ transform: reduceMotion ? undefined : "translate3d(calc(var(--wheat-pointer-x, 0) * -38px), 0, 0)" }}
         >
           <div className="wheat-bristle wheat-bristle-slow absolute top-[4vh] left-0 aspect-[1264/808] w-[112%]">
             <Image

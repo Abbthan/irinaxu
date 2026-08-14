@@ -225,6 +225,16 @@ body {
   will-change: transform;
 }
 
+@keyframes home-title-bob {
+  0%, 100% { transform: translateY(-0.75px); }
+  50% { transform: translateY(0.75px); }
+}
+
+.home-title-text--bobbing {
+  animation: home-title-bob 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+
 @keyframes sun-ray-sway {
   0%, 100% { transform: rotate(-2.4deg); }
   50% { transform: rotate(2.4deg); }
