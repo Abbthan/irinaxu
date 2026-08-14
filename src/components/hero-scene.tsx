@@ -184,10 +184,6 @@ export function HeroScene() {
         </p>
       </div>
 
-        <div className="scroll-invitation absolute bottom-10 flex flex-col items-center gap-2 text-dusk-ink/50">
-          <span className="font-hand text-lg">Scroll to begin</span>
-          <span className="h-8 w-px bg-dusk-ink/30" />
-        </div>
       </div>
     </section>
   );

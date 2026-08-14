@@ -9,6 +9,7 @@ import { LanguageToggle } from "./language-toggle";
 // scroll-position tracking.
 export function SiteNav() {
   const titleRef = useRef<HTMLAnchorElement>(null);
+  const scrollPromptRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const title = titleRef.current;
@@ -35,6 +36,9 @@ export function SiteNav() {
 
       title.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0) scale(${scale.toFixed(4)})`;
       titleText?.classList.toggle("home-title-text--bobbing", linearProgress <= 0.001);
+      if (scrollPromptRef.current) {
+        scrollPromptRef.current.style.opacity = (1 - linearProgress).toFixed(3);
+      }
       raf = 0;
     };
 
@@ -72,6 +76,17 @@ export function SiteNav() {
           Contact
         </a>
         <LanguageToggle />
+      </div>
+      <div
+        ref={scrollPromptRef}
+        aria-hidden
+        data-opening-scroll-prompt
+        className="pointer-events-none fixed inset-x-0 bottom-10 flex justify-center text-white/70 [filter:drop-shadow(0_1px_4px_rgba(17,24,39,0.45))]"
+      >
+        <div className="scroll-invitation flex flex-col items-center gap-2">
+          <span className="font-hand text-lg">Scroll to begin</span>
+          <span className="h-8 w-px bg-white/50" />
+        </div>
       </div>
     </header>
   );
