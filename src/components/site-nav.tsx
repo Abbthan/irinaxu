@@ -17,7 +17,7 @@ export function SiteNav() {
     let raf = 0;
 
     const update = () => {
-      const transitionDistance = window.innerHeight * 0.32;
+      const transitionDistance = window.innerHeight * 0.16;
       const linearProgress = transitionDistance > 0
         ? Math.min(1, Math.max(0, window.scrollY / transitionDistance))
         : 1;

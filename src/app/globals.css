@@ -236,8 +236,8 @@ body {
 }
 
 @keyframes sun-ray-sway {
-  0%, 100% { transform: rotate(-2.4deg); }
-  50% { transform: rotate(2.4deg); }
+  0%, 100% { transform: rotate(-3.6deg); }
+  50% { transform: rotate(3.6deg); }
 }
 
 .sun-ray-sway {
