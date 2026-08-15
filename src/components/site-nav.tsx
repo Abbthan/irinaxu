@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { LanguageToggle } from "./language-toggle";
+import { TITLE_TRANSITION_VH } from "@/lib/scroll-timing";
 
 // Deliberately minimal — just the name and a way to get in touch. Text
 // links use mix-blend-mode: difference so the same white text reads dark
@@ -18,7 +19,7 @@ export function SiteNav() {
     let raf = 0;
 
     const update = () => {
-      const transitionDistance = window.innerHeight * 0.16;
+      const transitionDistance = window.innerHeight * (TITLE_TRANSITION_VH / 100);
       const linearProgress = transitionDistance > 0
         ? Math.min(1, Math.max(0, window.scrollY / transitionDistance))
         : 1;

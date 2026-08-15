@@ -6,6 +6,7 @@ import { ReadBeneath } from "@/components/read-beneath";
 import { StatementBreak } from "@/components/statement-break";
 import { Epilogue } from "@/components/epilogue";
 import { SiteFooter } from "@/components/site-footer";
+import { SCENE_CURTAIN_OVERLAP_VH } from "@/lib/scroll-timing";
 
 export default function Home() {
   return (
@@ -14,14 +15,16 @@ export default function Home() {
       <main>
         <div id="top" />
         <VillageParallaxScene />
-        {/* Scene animation still occupies its original 320vh scroll span.
-            The faster lighting phase now leaves a short still-night beat;
-            at the established curtain-start point this wrapper is exactly
-            one viewport below the top, so wheat still cannot arrive early. */}
+        {/* All original scene/curtain proportions are retained while their
+            shared scroll distances are shortened by the global 1.5x speed
+            factor. Wheat therefore still arrives only after the night hold. */}
         {/* Keep the curtain itself transparent so the pinned night scene
             remains visible through every gap in the wheat artwork. The
             opaque paper background begins only after HeroScene. */}
-        <div className="relative z-10 -mt-[252.4vh]">
+        <div
+          className="relative z-10"
+          style={{ marginTop: `${-SCENE_CURTAIN_OVERLAP_VH}vh` }}
+        >
           <HeroScene />
 
           {/* Keep every later section in the same opaque, raised page as the

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useReducedMotion } from "framer-motion";
+import { SCENE_SCROLL_VH, SCENE_TRACK_VH } from "@/lib/scroll-timing";
 
 // Scroll shares one --scene-progress value (0-1): assembly, a LOCKED
 // stretch where position stops changing and lighting changes rapidly,
@@ -15,8 +16,6 @@ const PHASE_A_END = 0.38; // parallax assembly
 const PHASE_B_END = 0.53; // position locked, day -> night
 // The following page still begins at the established 0.68 point, retaining
 // the original still-night beat before wheat enters.
-const SCENE_SCROLL_VH = 320;
-
 // Sun/moon share one quarter-circle arc: a center point below the
 // mountains, swept from 180deg (level with the center, off to the side)
 // to 90deg (directly above the center). At their high endpoint they sit
@@ -257,7 +256,7 @@ export function VillageParallaxScene() {
     };
 
     const animateCelestial = () => {
-      celestialCurrent += (celestialTarget - celestialCurrent) * 0.22;
+      celestialCurrent += (celestialTarget - celestialCurrent) * 0.31;
       if (Math.abs(celestialTarget - celestialCurrent) < 0.0001) celestialCurrent = celestialTarget;
       paintCelestial(celestialCurrent);
       if (celestialCurrent !== celestialTarget) {
@@ -269,8 +268,8 @@ export function VillageParallaxScene() {
 
     const update = () => {
       const rect = track.getBoundingClientRect();
-      // Keep the original movement speed even though the track now includes
-      // an additional sticky tail for the page-over-scene reveal.
+      // The shared shortened timeline advances every phase 50% faster while
+      // retaining their relative proportions and exact synchronization.
       const timeline = window.innerHeight * (SCENE_SCROLL_VH / 100);
       const progress = timeline > 0 ? Math.min(1, Math.max(0, -rect.top / timeline)) : 0;
       const daynightT = Math.min(1, Math.max(0, (progress - PHASE_A_END) / (PHASE_B_END - PHASE_A_END)));
@@ -391,7 +390,11 @@ export function VillageParallaxScene() {
   const moonRestTop = `${ARC_CENTER_Y_VH}vh`;
 
   return (
-    <div ref={trackRef} className="relative h-[570vh]" style={{ ["--scene-progress" as string]: "0" }}>
+    <div
+      ref={trackRef}
+      className="relative"
+      style={{ ["--scene-progress" as string]: "0", height: `${SCENE_TRACK_VH}vh` }}
+    >
       <section
         ref={stageRef}
         className="sticky top-0 h-screen w-full overflow-hidden"
