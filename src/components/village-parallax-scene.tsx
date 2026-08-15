@@ -85,6 +85,16 @@ const POINTER_DEPTH = {
   foregroundVillage: [24.5, 4.5],
 } as const;
 
+// Exponential damping makes the parallax cover most of the distance at the
+// beginning, then ease gently into its target. Using elapsed time keeps the
+// response consistent on 60 Hz, 120 Hz, and temporarily throttled displays.
+const POINTER_RESPONSE = 9.5;
+
+function easeToward(current: number, target: number, deltaSeconds: number, response: number): number {
+  const amount = 1 - Math.exp(-response * deltaSeconds);
+  return current + (target - current) * amount;
+}
+
 interface LayerProps {
   entered: boolean;
   z: number;
@@ -300,9 +310,10 @@ export function VillageParallaxScene() {
     return () => cancelAnimationFrame(id);
   }, [reduceMotion]);
 
-  // Pointer depth-parallax — a spring (position + velocity), not a plain
-  // lerp, for momentum and a slight overshoot. `pointer()` applies the
-  // inverse sign so every scenic layer travels against cursor direction.
+  // Pointer depth-parallax uses a time-corrected exponential ease-out: it
+  // responds quickly while far from the cursor target, then decelerates as
+  // it arrives without spring overshoot. `pointer()` applies the inverse
+  // sign so every scenic layer travels against cursor direction.
   useEffect(() => {
     if (reduceMotion) return;
     const stage = stageRef.current;
@@ -312,8 +323,7 @@ export function VillageParallaxScene() {
     let targetY = 0;
     let x = 0;
     let y = 0;
-    let vx = 0;
-    let vy = 0;
+    let lastFrameTime: number | null = null;
 
     const onPointerMove = (event: PointerEvent) => {
       const rect = stage.getBoundingClientRect();
@@ -321,11 +331,11 @@ export function VillageParallaxScene() {
       targetY = ((event.clientY - rect.top) / rect.height) * 2 - 1;
     };
 
-    const tick = () => {
-      vx = (vx + (targetX - x) * 0.02) * 0.88;
-      vy = (vy + (targetY - y) * 0.02) * 0.88;
-      x += vx;
-      y += vy;
+    const tick = (frameTime: number) => {
+      const deltaSeconds = lastFrameTime === null ? 1 / 60 : Math.min((frameTime - lastFrameTime) / 1000, 0.05);
+      lastFrameTime = frameTime;
+      x = easeToward(x, targetX, deltaSeconds, POINTER_RESPONSE);
+      y = easeToward(y, targetY, deltaSeconds, POINTER_RESPONSE);
       stage.style.setProperty("--pointer-x", x.toFixed(4));
       stage.style.setProperty("--pointer-y", y.toFixed(4));
       raf = requestAnimationFrame(tick);

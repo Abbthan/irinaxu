@@ -18,6 +18,15 @@ const STARS = [
   { top: 12, left: 95, size: 1.5, dur: 5.0, delay: -2.2, bright: false },
 ] as const;
 
+// The wheat is the nearest layer, so it settles a touch faster than the
+// landscape while retaining the same fast-start, gentle-finish motion.
+const WHEAT_POINTER_RESPONSE = 11.5;
+
+function easeToward(current: number, target: number, deltaSeconds: number, response: number): number {
+  const amount = 1 - Math.exp(-response * deltaSeconds);
+  return current + (target - current) * amount;
+}
+
 // This is the second stage the reader reaches. Its wheat-and-black divider
 // is the page's own leading edge, so the page itself rises over the pinned
 // night landscape rather than a separate full-screen black cover doing so.
@@ -42,7 +51,7 @@ export function HeroScene() {
     let pointerClientY = 0;
     let wheatTargetX = 0;
     let wheatX = 0;
-    let wheatVelocityX = 0;
+    let lastFrameTime: number | null = null;
 
     const onPointerMove = (event: PointerEvent) => {
       pointerSeen = true;
@@ -51,7 +60,10 @@ export function HeroScene() {
       wheatTargetX = (event.clientX / window.innerWidth) * 2 - 1;
     };
 
-    const tick = () => {
+    const tick = (frameTime: number) => {
+      const deltaSeconds = lastFrameTime === null ? 1 / 60 : Math.min((frameTime - lastFrameTime) / 1000, 0.05);
+      lastFrameTime = frameTime;
+
       // Keep translating the last viewport-space cursor position into the
       // stage's local coordinates. The stage moves while the page scrolls,
       // even when the pointer itself is stationary, so calculating this
@@ -72,8 +84,7 @@ export function HeroScene() {
       // The wheat is the nearest scenic layer, so it receives the largest
       // pointer amplitude. Only X is written: the black page edge beneath
       // it remains perfectly still and there is no vertical wheat drift.
-      wheatVelocityX = (wheatVelocityX + (wheatTargetX - wheatX) * 0.032) * 0.86;
-      wheatX += wheatVelocityX;
+      wheatX = easeToward(wheatX, wheatTargetX, deltaSeconds, WHEAT_POINTER_RESPONSE);
       hero.style.setProperty("--wheat-pointer-x", wheatX.toFixed(4));
       raf = requestAnimationFrame(tick);
     };
