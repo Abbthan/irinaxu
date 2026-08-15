@@ -85,12 +85,25 @@ const POINTER_DEPTH = {
   foregroundVillage: [24.5, 4.5],
 } as const;
 
-// Exponential damping makes the parallax cover most of the distance at the
-// beginning, then ease gently into its target. Using elapsed time keeps the
-// response consistent on 60 Hz, 120 Hz, and temporarily throttled displays.
-const POINTER_RESPONSE = 9.5;
+// A high response while far away preserves the immediate initial movement;
+// a much lower response across the final half of the journey makes the
+// deceleration linger visibly. Elapsed time keeps both phases consistent on
+// 60 Hz, 120 Hz, and temporarily throttled displays.
+const POINTER_ATTACK_RESPONSE = 12;
+const POINTER_SETTLE_RESPONSE = 3.5;
+const POINTER_DECELERATION_RANGE = 0.5;
 
-function easeToward(current: number, target: number, deltaSeconds: number, response: number): number {
+function easeToward(
+  current: number,
+  target: number,
+  deltaSeconds: number,
+  attackResponse: number,
+  settleResponse: number,
+  decelerationRange: number,
+): number {
+  const distance = Math.abs(target - current);
+  const distanceMix = Math.min(1, distance / decelerationRange);
+  const response = settleResponse + (attackResponse - settleResponse) * distanceMix;
   const amount = 1 - Math.exp(-response * deltaSeconds);
   return current + (target - current) * amount;
 }
@@ -334,8 +347,22 @@ export function VillageParallaxScene() {
     const tick = (frameTime: number) => {
       const deltaSeconds = lastFrameTime === null ? 1 / 60 : Math.min((frameTime - lastFrameTime) / 1000, 0.05);
       lastFrameTime = frameTime;
-      x = easeToward(x, targetX, deltaSeconds, POINTER_RESPONSE);
-      y = easeToward(y, targetY, deltaSeconds, POINTER_RESPONSE);
+      x = easeToward(
+        x,
+        targetX,
+        deltaSeconds,
+        POINTER_ATTACK_RESPONSE,
+        POINTER_SETTLE_RESPONSE,
+        POINTER_DECELERATION_RANGE,
+      );
+      y = easeToward(
+        y,
+        targetY,
+        deltaSeconds,
+        POINTER_ATTACK_RESPONSE,
+        POINTER_SETTLE_RESPONSE,
+        POINTER_DECELERATION_RANGE,
+      );
       stage.style.setProperty("--pointer-x", x.toFixed(4));
       stage.style.setProperty("--pointer-y", y.toFixed(4));
       raf = requestAnimationFrame(tick);

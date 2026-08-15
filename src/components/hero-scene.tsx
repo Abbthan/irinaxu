@@ -18,11 +18,24 @@ const STARS = [
   { top: 12, left: 95, size: 1.5, dur: 5.0, delay: -2.2, bright: false },
 ] as const;
 
-// The wheat is the nearest layer, so it settles a touch faster than the
-// landscape while retaining the same fast-start, gentle-finish motion.
-const WHEAT_POINTER_RESPONSE = 11.5;
+// The wheat is the nearest layer, so its initial response remains quicker
+// than the landscape. Its lower near-target rate creates the same extended,
+// clearly visible deceleration without compromising that depth hierarchy.
+const WHEAT_ATTACK_RESPONSE = 14.5;
+const WHEAT_SETTLE_RESPONSE = 4.5;
+const WHEAT_DECELERATION_RANGE = 0.5;
 
-function easeToward(current: number, target: number, deltaSeconds: number, response: number): number {
+function easeToward(
+  current: number,
+  target: number,
+  deltaSeconds: number,
+  attackResponse: number,
+  settleResponse: number,
+  decelerationRange: number,
+): number {
+  const distance = Math.abs(target - current);
+  const distanceMix = Math.min(1, distance / decelerationRange);
+  const response = settleResponse + (attackResponse - settleResponse) * distanceMix;
   const amount = 1 - Math.exp(-response * deltaSeconds);
   return current + (target - current) * amount;
 }
@@ -84,7 +97,14 @@ export function HeroScene() {
       // The wheat is the nearest scenic layer, so it receives the largest
       // pointer amplitude. Only X is written: the black page edge beneath
       // it remains perfectly still and there is no vertical wheat drift.
-      wheatX = easeToward(wheatX, wheatTargetX, deltaSeconds, WHEAT_POINTER_RESPONSE);
+      wheatX = easeToward(
+        wheatX,
+        wheatTargetX,
+        deltaSeconds,
+        WHEAT_ATTACK_RESPONSE,
+        WHEAT_SETTLE_RESPONSE,
+        WHEAT_DECELERATION_RANGE,
+      );
       hero.style.setProperty("--wheat-pointer-x", wheatX.toFixed(4));
       raf = requestAnimationFrame(tick);
     };
