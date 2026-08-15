@@ -145,7 +145,7 @@ export function HeroScene() {
 
       <div
         ref={stageRef}
-        className="light-beam-stage relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-dusk px-6 text-center"
+        className="light-beam-stage relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-black px-6 text-center"
         style={{ ["--beam-x" as string]: "50%", ["--beam-y" as string]: "34%" }}
       >
       <div aria-hidden className="pointer-events-none absolute inset-0">

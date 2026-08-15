@@ -105,31 +105,6 @@ body {
   transition: background 0.05s linear;
 }
 
-/* Slow ambient drift underneath, so the hero feels alive even before the
-   reader moves the pointer. */
-.light-beam-stage::before {
-  content: "";
-  position: absolute;
-  inset: -10%;
-  background: radial-gradient(
-    28rem 22rem at 62% 28%,
-    color-mix(in srgb, var(--color-light) 16%, transparent) 0%,
-    transparent 70%
-  );
-  animation: ambient-drift 22s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  @keyframes ambient-drift {
-    0%, 100% { transform: translate(0, 0); }
-    50% { transform: translate(-3%, 4%); }
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .light-beam-stage::before { animation: none; }
-}
-
 /* A restrained, buoyant scroll cue: the long easing makes each turnaround
    retain a little visual momentum instead of reading as a mechanical bounce. */
 @keyframes scroll-invitation-float {
