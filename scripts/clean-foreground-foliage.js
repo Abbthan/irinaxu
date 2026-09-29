@@ -29,6 +29,14 @@ function inCanopy(x, y) {
     x > 55 && x < 525 && y >= 150 + 0.29 * x;
   if (belowFirstRoofline) return false;
 
+  // The right canopy zone also overlaps the foreground roofs. Its former
+  // rectangular lower edge began at x=900 and removed part of the roof at
+  // that exact boundary. Everything below this conservative roof guard is
+  // architecture, not sky matte, and must remain untouched.
+  const overlapsRightArchitecture =
+    x >= 890 && x < 1215 && y >= 330;
+  if (overlapsRightArchitecture) return false;
+
   return CANOPY_ZONES.some(
     (zone) => x > zone.left && x < zone.right && y > zone.top && y < zone.bottom,
   );

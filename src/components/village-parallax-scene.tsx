@@ -81,7 +81,7 @@ const POINTER_DEPTH = {
   mountains: [6.6, 3.3],
   clouds: [12, 6],
   hilltopVillage: [14.5, 6.7],
-  foregroundVillage: [24.5, 4.5],
+  foregroundVillage: [24.5, 11],
 } as const;
 
 // A high response while far away preserves the immediate initial movement;
