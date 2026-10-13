@@ -1,4 +1,9 @@
 {
   "version": 1,
-  "text": {}
+  "text": {
+    "What is light?": {
+      "en": "What is light? ",
+      "zh": "什么是光？"
+    }
+  }
 }
