@@ -1,0 +1,321 @@
+@import "tailwindcss";
+
+:root {
+  /* Warm literary palette — paper and ember, not tech blue/grey.
+     Deliberately not toggled by system dark mode: this is a fixed,
+     art-directed narrative (dark prologue -> warm paper acts -> dark
+     epilogue), the same way the acts themselves are fixed. */
+  --color-paper: #f6efdf;
+  --color-paper-deep: #eee2c6;
+  --color-ink: #221c14;
+  --color-ink-soft: #6b5f4d;
+  --color-light: #f2a94e;
+  --color-light-soft: #ffdb9e;
+  --color-ember: #c1521f;
+  --color-dusk: #15110c;
+  --color-dusk-deep: #0b0906;
+  --color-dusk-ink: #f3e6d2;
+
+  /* Night-village illustration */
+  --color-night-sky: #1c1f3d;
+  --color-night-sky-deep: #0a0b1a;
+  --color-mountain-far: #262a4f;
+  --color-mountain-near: #171933;
+  --color-roof: #0f1128;
+  --color-path: #3a3660;
+
+  --font-display: "Fraunces Variable", Georgia, serif;
+  --font-body: "Newsreader Variable", Georgia, serif;
+  --font-hand: "Caveat Variable", cursive;
+
+  /* The exact entrance curve measured off rsnc.ai's own page-load choreography
+     (getAnimations() -> cubic-bezier(0.16, 1, 0.3, 1), ~760-1120ms per element).
+     A snappy decelerate — everything seems to arrive at once, softly. */
+  --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@theme inline {
+  --color-paper: var(--color-paper);
+  --color-paper-deep: var(--color-paper-deep);
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-light: var(--color-light);
+  --color-light-soft: var(--color-light-soft);
+  --color-ember: var(--color-ember);
+  --color-dusk: var(--color-dusk);
+  --color-dusk-deep: var(--color-dusk-deep);
+  --color-dusk-ink: var(--color-dusk-ink);
+
+  --color-night-sky: var(--color-night-sky);
+  --color-night-sky-deep: var(--color-night-sky-deep);
+  --color-mountain-far: var(--color-mountain-far);
+  --color-mountain-near: var(--color-mountain-near);
+  --color-roof: var(--color-roof);
+  --color-path: var(--color-path);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-hand: var(--font-hand);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--color-light-soft);
+  color: var(--color-ink);
+}
+
+.text-wrap-balance {
+  text-wrap: balance;
+}
+
+/* Pointer-tracked beam (light-beam-hero.tsx sets --beam-x/--beam-y). */
+.light-beam {
+  background:
+    radial-gradient(
+      36rem 30rem at var(--beam-x) var(--beam-y),
+      color-mix(in srgb, var(--color-light) 55%, transparent) 0%,
+      color-mix(in srgb, var(--color-ember) 22%, transparent) 32%,
+      transparent 68%
+    );
+  transition: background 0.05s linear;
+}
+
+/* A restrained, buoyant scroll cue: the long easing makes each turnaround
+   retain a little visual momentum instead of reading as a mechanical bounce. */
+@keyframes scroll-invitation-float {
+  0%, 100% { transform: translateY(0); }
+  45% { transform: translateY(-9px); }
+  58% { transform: translateY(-8px); }
+}
+
+.scroll-invitation {
+  animation: scroll-invitation-float 3.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-invitation { animation: none; }
+}
+
+/* Ghost watermark — an oversized, near-invisible word behind hero content,
+   rsnc.ai's signature move. */
+.ghost-watermark {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(6rem, 22vw, 16rem);
+  letter-spacing: -0.02em;
+  color: var(--color-dusk-ink);
+  opacity: 0.06;
+  white-space: nowrap;
+}
+
+/* Twinkle: measured off rsnc's .nightStar keyframes exactly — opacity AND
+   scale pulse together, ease-in-out. Individual stars randomize duration/
+   delay inline so the field doesn't pulse in unison. */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.78); }
+  50% { opacity: 0.66; transform: scale(1.12); }
+}
+@keyframes twinkle-bright {
+  0%, 100% { opacity: 0.46; transform: scale(0.78); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--color-dusk-ink);
+  animation: twinkle 4.4s ease-in-out infinite;
+}
+.star-bright { animation-name: twinkle-bright; }
+
+@keyframes cloud-crossing {
+  from { left: 108%; }
+  to { left: -38%; }
+}
+.parallax-cloud {
+  animation-name: cloud-crossing;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: left;
+}
+
+/* The three offset copies never sway in lockstep, so the wheat reads as
+   individual heads catching a faint breeze instead of one rigid card. */
+@keyframes wheat-bristle {
+  0%, 100% { transform: translateX(-1.6px) rotate(-0.2deg) skewX(-0.14deg); }
+  48% { transform: translateX(1.6px) rotate(0.2deg) skewX(0.14deg); }
+  62% { transform: translateX(0.65px) rotate(0.07deg) skewX(0.05deg); }
+}
+.wheat-bristle {
+  transform-origin: 50% 100%;
+  animation: wheat-bristle 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+.wheat-bristle-slow {
+  animation-duration: 4.4s;
+  animation-delay: -1.2s;
+}
+.wheat-bristle-late {
+  animation-duration: 3.9s;
+  animation-delay: -2.6s;
+}
+
+/* Server-rendered first paint is already centered; the client replaces this
+   with exact pixel geometry and a reversible scroll-linked scale/position. */
+.home-title-link {
+  transform: translate3d(calc(50vw - 50%), calc(50vh - 50%), 0) scale(5.4);
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+@keyframes home-title-bob {
+  0%, 100% { transform: translateY(-0.75px); }
+  50% { transform: translateY(0.75px); }
+}
+
+.home-title-text--bobbing {
+  animation: home-title-bob 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes sun-ray-sway {
+  0%, 100% { transform: rotate(-10.8deg); }
+  50% { transform: rotate(10.8deg); }
+}
+
+.sun-ray-sway {
+  animation: sun-ray-sway 4.5s ease-in-out infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+@keyframes streetlight-glow {
+  0%, 100% { opacity: 0.5; filter: blur(2px) saturate(1.02) brightness(0.92); }
+  24% { opacity: 0.68; filter: blur(2px) saturate(1.1) brightness(1.02); }
+  28% { opacity: 0.58; filter: blur(2px) saturate(1.06) brightness(0.96); }
+  52% { opacity: 0.86; filter: blur(2px) saturate(1.2) brightness(1.12); }
+  73% { opacity: 0.62; filter: blur(2px) saturate(1.08) brightness(0.98); }
+  77% { opacity: 0.75; filter: blur(2px) saturate(1.14) brightness(1.06); }
+}
+.streetlight-aura {
+  position: absolute;
+  border-radius: 9999px;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle at 50% 24%, rgba(255, 250, 213, 0.98) 0 3%, rgba(255, 195, 83, 0.7) 10%, rgba(242, 139, 38, 0.24) 28%, transparent 66%),
+    radial-gradient(ellipse at 50% 76%, rgba(255, 183, 66, 0.15), transparent 70%);
+  filter: blur(2px) saturate(1.1);
+  animation: streetlight-glow 4.6s ease-in-out infinite;
+}
+.streetlight-aura-primary {
+  left: 49.9%;
+  top: 13%;
+  width: 9%;
+  height: 28%;
+  transform: translateX(-50%);
+}
+.streetlight-aura-secondary {
+  left: 95.2%;
+  top: 41.3%;
+  width: 7%;
+  height: 20%;
+  transform: translateX(-50%);
+  animation-delay: -1.7s;
+  opacity: 0.72;
+}
+
+/* SVG variant: transform-box/origin makes scale() pivot on the circle's
+   own center instead of the <svg> viewport origin. */
+.svg-star {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: twinkle 4.4s ease-in-out infinite;
+}
+.svg-star.star-bright { animation-name: twinkle-bright; }
+
+/* Gentle rock: measured off rsnc's .sun (±8deg, 3.5s). A living icon, not a
+   spinning one. --rock-deg lets callers dial the amplitude down further
+   (e.g. a boat at ±1.8deg). */
+@keyframes gentle-rock {
+  0%, 100% { transform: rotate(calc(var(--rock-deg, 8) * -1deg)); }
+  50% { transform: rotate(calc(var(--rock-deg, 8) * 1deg)); }
+}
+.gentle-rock {
+  animation: gentle-rock 3.5s ease-in-out infinite;
+  transform-origin: 50% 100%;
+}
+
+/* Marquee: duplicate the content once and slide exactly -50%, so the loop
+   is seamless regardless of content width. rsnc runs its top ticker at a
+   slow, stately 104s per lap. */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 104s linear infinite;
+}
+
+/* Scan-line sweep: measured off rsnc's .perception-sweep (left 7% <-> 93%,
+   cubic-bezier(0.65,0,0.35,1), 3.8s) — a continuous ambient scan, not tied
+   to scroll or hover. */
+@keyframes scan-sweep {
+  0%, 100% { left: 7%; }
+  50% { left: 93%; }
+}
+.read-beneath-sweep {
+  animation: scan-sweep 3.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* A lit lamp doesn't just switch on — it breathes, faintly, once it's lit.
+   Layered on top of the one-time fade-in via a separate class toggled
+   after the fade completes. */
+@keyframes lamp-breathe {
+  0%, 100% { opacity: 0.16; }
+  50% { opacity: 0.28; }
+}
+.lamp-lit-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lamp-breathe 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .star, .svg-star, .gentle-rock, .marquee-track, .read-beneath-sweep, .lamp-lit-glow, .parallax-cloud, .streetlight-aura, .wheat-bristle {
+    animation: none;
+  }
+}
