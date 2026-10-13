@@ -2,9 +2,12 @@
 // hand-written (not machine-translated at request time) — see
 // docs/i18n-language-system.md for why. Proper nouns (Irina, Light Talks)
 // are deliberately left out so they pass through untranslated.
-const zh: Record<string, string> = {
+import content from "@/content/site-content.json";
+import { parseSiteContent, renderWebsiteText } from "@/lib/site-content";
+
+export const DEFAULT_TRANSLATIONS: Readonly<Record<string, string>> = {
   // Nav
-  "Contact": "联系",
+  Contact: "联系",
 
   // Marquee
   "Chasing light, becoming it": "追光，亦成光",
@@ -25,8 +28,7 @@ const zh: Record<string, string> = {
   "Asked what was needed.": "却没问对方需要什么。",
 
   // Prologue / hero
-  "What is light?":
-    "什么是光？",
+  "What is light?": "什么是光？",
   "I used to think it was a bulb. Then I thought it was warmth. Now I think it’s the ability to see someone else.":
     "我曾以为那是灯泡，后来发现是温度，最后才明白——那是看见他人的能力。",
   "Scroll to begin": "向下滚动，故事开始",
@@ -42,8 +44,10 @@ const zh: Record<string, string> = {
     "我以为我在给予光明，但她们真正需要的，或许是被看见的生活。",
   "So I didn’t stop sending lamps — I started teaching the kids to make videos instead. Not another tool for them to use once. A way to be seen, on their own terms, again and again.":
     "于是我没有停止送灯，而是开始教山里的孩子拍视频、做自媒体。这不再是一件用完即弃的工具，而是一种能让他们被看见的方式——一次又一次，以自己的方式。",
-  "A single street lamp lighting a quiet lane in the village at night": "夜里，一盏路灯照亮村里安静的小巷",
-  "One lamp at a time, the walk home got safer.": "一盏一盏地，回家的路，变得更安全了。",
+  "A single street lamp lighting a quiet lane in the village at night":
+    "夜里，一盏路灯照亮村里安静的小巷",
+  "One lamp at a time, the walk home got safer.":
+    "一盏一盏地，回家的路，变得更安全了。",
 
   // Act II — Building Bridges
   "Shared Light": "共光",
@@ -54,7 +58,8 @@ const zh: Record<string, string> = {
     "我成立了青年创投联盟（YVA）。没有家庭背景，没有先天优势——凭着一股愣劲儿，我连接了一千位想要做出改变的高中生创业者。",
   "I stopped being a single point of light. I became a wire — carrying whatever I had toward whoever had an idea worth it.":
     "我不再是一个孤独的发光体，而成了一根电线，把我拥有的一切，引向每一个值得被点亮的想法。",
-  "A hillside village of scattered lights, seen from a distance at night": "夜晚远眺，山坡上的村庄，灯火散落如星",
+  "A hillside village of scattered lights, seen from a distance at night":
+    "夜晚远眺，山坡上的村庄，灯火散落如星",
 
   // Act III — The Inner Light
   "Lasting Light": "恒光",
@@ -65,7 +70,8 @@ const zh: Record<string, string> = {
     "我在约翰·洛克研究所的比赛里写动物权利，在 IPQ 课题中研究绿色商业。我把自己主理的访谈节目《一七访谈》改名为《光·谈》——因为我发现，我真正想做的，是让两个人的思想在这里碰撞、点燃。",
   "Not for the views. For the record of what business could be, if it meant well.":
     "不是为了流量，而是为了记录下商业向善的可能。",
-  "Photo — books laid flat, or a Light Talks recording session": "照片 — 平铺的书籍，或《光·谈》录制现场",
+  "Photo — books laid flat, or a Light Talks recording session":
+    "照片 — 平铺的书籍，或《光·谈》录制现场",
 
   // Act IV — Becoming the Light
   "Becoming Light": "成为光",
@@ -74,33 +80,38 @@ const zh: Record<string, string> = {
     "从四川灶台前的一缕炊烟，到流浪猫窝里残留的余温，再到创业者眼中，第一次被认真相信时的坚定——",
   "I think I’ve spent my life chasing light, and slowly becoming it.":
     "我想，我这一生，大概都在追光，也在慢慢地，成为光。",
-  "Photo — Irina walking toward the light, or a simple line drawing": "照片 — Irina 迎光而行，或一幅简笔画",
+  "Photo — Irina walking toward the light, or a simple line drawing":
+    "照片 — Irina 迎光而行，或一幅简笔画",
 
   // Closing quote
-  "I used to think leadership meant giving orders.": "我曾以为，领导意味着发号施令。",
+  "I used to think leadership meant giving orders.":
+    "我曾以为，领导意味着发号施令。",
   "Now I know it means giving light.": "后来才懂，它意味着给予光。",
-  "And sometimes, that light is just listening.": "而有时候，那束光，只是愿意倾听。",
+  "And sometimes, that light is just listening.":
+    "而有时候，那束光，只是愿意倾听。",
   "Irina — Class of 2031": "Irina — 2031 届",
 
   // Footer
   "Get in touch": "取得联系",
-  "Interviews": "访谈节目",
+  Interviews: "访谈节目",
 };
 
 // Leading/trailing whitespace is preserved around the translated core so
 // this is safe to run on text nodes that include incidental JSX whitespace.
+const publishedContent = parseSiteContent(content);
+
+export function translateWebsiteText(
+  value: string,
+  locale: "en" | "zh",
+): string {
+  return renderWebsiteText(
+    value,
+    locale,
+    publishedContent,
+    DEFAULT_TRANSLATIONS,
+  );
+}
+
 export function translateEnglishToChinese(value: string): string {
-  const leading = value.match(/^\s*/)?.[0] ?? "";
-  const trailing = value.match(/\s*$/)?.[0] ?? "";
-  const core = value.slice(leading.length, value.length - trailing.length);
-
-  const direct = zh[core];
-  if (direct) return `${leading}${direct}${trailing}`;
-
-  // Dynamic/parameterized strings get an explicit regex + template, one per
-  // distinct dynamic shape actually used in the product. None yet — this
-  // site has no runtime-generated strings — but the ladder stays here so a
-  // future one (e.g. a form confirmation) has a home.
-
-  return value; // untranslated strings pass through unchanged, never garbled.
+  return translateWebsiteText(value, "zh");
 }
