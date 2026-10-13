@@ -22,3 +22,9 @@ Text edits are stored in `src/content/site-content.json`. Original English strin
 Each publish includes the file SHA that was loaded. If someone changed that file meanwhile, GitHub rejects the stale update instead of overwriting their work. Copy your draft before reloading the latest file and reconcile both edits.
 
 The Desktop project remains an untouched backup. Use `/Users/ethanma/Projects/irinaxu` or a fresh GitHub clone for further development. Access keys do not belong in either source tree.
+
+## Verification record
+
+Verified on 2026-10-13: authenticated text publication reached the live domain through GitHub and Cloudflare; the original text was then restored. Image publication was tested using identical original bytes. Incorrect image dimensions were rejected, all 14 deployed PNGs matched the Desktop backup, and the 10 automated admin regression tests passed. Login also worked under the deployed admin-only security policy.
+
+For normal local Git collaboration, start with a fresh clone of the GitHub repository. The import working copy and the original Desktop backup retain their own local snapshot histories; neither should be assumed to have the same commit history as the browser-imported repository.
