@@ -188,17 +188,27 @@ export function AdminEditor() {
         throw new Error(
           "Please choose a PNG image smaller than 10 MB. Keep transparent backgrounds on scene layers.",
         );
-      const signature = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+      const header = await file.slice(0, 24).arrayBuffer();
+      const signature = new Uint8Array(header.slice(0, 8));
       if (signature.join(",") !== "137,80,78,71,13,10,26,10")
         throw new Error("This is not a valid PNG file.");
+      if (header.byteLength < 24) throw new Error("This PNG file is incomplete.");
+      const dimensions = new DataView(header);
+      const width = dimensions.getUint32(16);
+      const height = dimensions.getUint32(20);
+      if (!width || !height || width > 8192 || height > 8192 || width * height > 32000000) throw new Error("The PNG canvas is too large. Use the original canvas dimensions.");
       const bitmap = await createImageBitmap(file);
       const original = new Image();
       original.src = `/${imagePath.slice(7)}`;
-      await original.decode();
+      let timeout = 0;
+      try {
+        await Promise.race([original.decode(), new Promise<never>((_, reject) => {
+          timeout = window.setTimeout(() => reject(new Error("Image comparison timed out. Check your connection and try again.")), 15000);
+        })]);
+      } finally { window.clearTimeout(timeout); bitmap.close(); }
       const matches =
-        bitmap.width === original.naturalWidth &&
-        bitmap.height === original.naturalHeight;
-      bitmap.close();
+        width === original.naturalWidth &&
+        height === original.naturalHeight;
       if (!matches)
         throw new Error(
           `Keep the original canvas size (${original.naturalWidth} × ${original.naturalHeight}) so the layered scene does not get cropped or misaligned.`,
@@ -230,6 +240,7 @@ export function AdminEditor() {
           : view === "code"
             ? codeFile!.sha
             : imageSha;
+      if (view === "code" && path === CONTENT_PATH && textDirty) throw new Error("Publish or reset your text drafts before editing their JSON source, so no draft is lost.");
       if (view === "code" && path === CONTENT_PATH)
         parseSiteContent(JSON.parse(codeDraft));
       const encoded =
@@ -260,6 +271,7 @@ export function AdminEditor() {
       }
       if (view === "images") {
         setImageFile(null);
+        setImagePreview("");
         setFiles(await editor.current.listFiles());
       }
     } catch (caught) {
@@ -278,8 +290,11 @@ export function AdminEditor() {
     setUser("");
     setKey("");
     setContentFile(null);
+    setContent({ version: 1, text: {} });
     setCodeFile(null);
+    setCodeDraft("");
     setImageFile(null);
+    setImagePreview("");
     setFiles([]);
     setLastCommit(null);
     setError("");
