@@ -1,14 +1,14 @@
 "use client";
 
+import { useRef } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { usePointerLight } from "@/hooks/use-pointer-light";
 
-// Full-bleed black single-statement pause — rsnc.ai's "The next interface
-// is empathy" moment. One idea, largest type on the page, no image, no
-// decoration. The line itself is Irina's own realization from Act I,
-// restated as the site's thesis rather than a new aphorism invented for
-// the occasion.
 export function StatementBreak() {
+  const stageRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
+  usePointerLight(stageRef, !reduceMotion, { x: 50, y: 48 });
+
   const reveal = {
     initial: { opacity: 0, y: reduceMotion ? 0 : 16 },
     whileInView: { opacity: 1, y: 0 },
@@ -17,14 +17,19 @@ export function StatementBreak() {
   };
 
   return (
-    <section className="flex min-h-[70vh] items-center justify-center bg-dusk-deep px-6 py-32 text-center sm:px-10">
+    <section
+      ref={stageRef}
+      className="relative flex min-h-[70vh] items-center justify-center overflow-hidden bg-dusk-deep px-6 py-32 text-center sm:px-10"
+      style={{ ["--beam-x" as string]: "50%", ["--beam-y" as string]: "48%" }}
+    >
+      <div className="light-beam pointer-events-none absolute inset-0 opacity-80" aria-hidden />
       <motion.p
         {...reveal}
-        className="max-w-3xl font-display text-[clamp(2rem,5.4vw,3.8rem)] font-light leading-[1.15] text-dusk-ink text-wrap-balance"
+        className="relative max-w-3xl font-display text-[clamp(2rem,5.4vw,3.8rem)] font-light leading-[1.15] text-dusk-ink text-wrap-balance"
       >
-        What they needed wasn&rsquo;t light.
+        True leadership isn&rsquo;t being the brightest star.
         <br />
-        <span className="italic text-light">It was to be seen.</span>
+        <span className="italic text-light">It is building a whole galaxy.</span>
       </motion.p>
     </section>
   );

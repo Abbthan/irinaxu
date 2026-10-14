@@ -211,7 +211,7 @@ export function HeroScene() {
           What is light?
         </p>
         <p className="relative mt-6 max-w-md font-body text-[15px] leading-relaxed text-dusk-ink/70 sm:text-base">
-          I used to think it was a bulb. Then I thought it was warmth. Now I think it&rsquo;s the ability to see someone else.
+          I used to think it was a bulb. Then I thought it was warmth. Now I think light is leadership &mdash; the ability to see someone else, and help them be seen.
         </p>
       </div>
 

@@ -10,12 +10,11 @@ import { SCENE_SCROLL_VH, SCENE_TRACK_VH } from "@/lib/scroll-timing";
 // a short night hold, then the following page covers the scene. Nothing
 // fades to reveal its position — layers arrive by moving into frame.
 const PHASE_A_END = 0.38; // parallax assembly
-// Half the former 0.30-wide interval: every consumer of DAYNIGHT_T (sky,
-// stars, artwork crossfades, lamp glow, and celestial arc) now completes
-// in exactly half the scroll distance.
-const PHASE_B_END = 0.53; // position locked, day -> night
-// The following page still begins at the established 0.68 point, retaining
-// the original still-night beat before wheat enters.
+// Day→night must be long enough to read: moon, stars, and lamp glow need a
+// clear hold before the wheat curtain covers the village.
+const PHASE_B_END = 0.66; // position locked, day -> night (+ still night)
+// Wheat curtain still overlaps near the end of the track; night is visible
+// for most of Phase B before that cover begins.
 // Sun/moon share one quarter-circle arc: a center point below the
 // mountains, swept from 180deg (level with the center, off to the side)
 // to 90deg (directly above the center). At their high endpoint they sit

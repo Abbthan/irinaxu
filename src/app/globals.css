@@ -103,6 +103,22 @@ body {
       transparent 68%
     );
   transition: background 0.05s linear;
+  mix-blend-mode: screen;
+}
+
+.metrics-glow {
+  background:
+    radial-gradient(42rem 28rem at 50% 0%, color-mix(in srgb, var(--color-light) 18%, transparent) 0%, transparent 68%);
+  animation: metrics-breathe 7s ease-in-out infinite;
+}
+
+@keyframes metrics-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metrics-glow { animation: none; }
 }
 
 /* A restrained, buoyant scroll cue: the long easing makes each turnaround

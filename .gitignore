@@ -42,3 +42,6 @@ next-env.d.ts
 
 # claude code local settings (machine/session-specific, not shared)
 .claude/settings.local.json
+
+# wrangler accidental outdir
+/false/

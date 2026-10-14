@@ -31,9 +31,13 @@ const zh: Record<string, string> = {
     "我曾以为那是灯泡，后来发现是温度，最后才明白——那是看见他人的能力。",
   "Scroll to begin": "向下滚动，故事开始",
 
-  // Act I — A Naive Beginning
+  // Act I — Where the Light Lands
   "First Light": "初光",
+  "Where the Light Lands": "光落之处",
+  "Echo Fab Begins": "Echo Fab 开始",
   "A Naive Beginning": "天真的开始",
+  "Sharing Light": "共享之光",
+  "Light That Lasts": "持久之光",
   "I printed my first lamp out of a discarded plastic bottle. I sold it, and used the money to buy headlamps for children in the mountains of Sichuan’s Liangshan — so they could see the road to school in the dark. I thought the job was done.":
     "我用废弃的塑料瓶打印出了第一盏灯，把它卖掉，换成头灯送给四川大凉山的孩子——让他们能看清夜里上学的路。我以为，我的任务完成了。",
   "Later I learned the headlamps weren’t on the road at all. They were hanging by the stove, lighting the cooking.":
@@ -48,6 +52,7 @@ const zh: Record<string, string> = {
   // Act II — Building Bridges
   "Shared Light": "共光",
   "Building Bridges": "搭建桥梁",
+  "Environmental Design Club": "环保设计社",
   "One lamp can only light one person. A community can light a city.":
     "一盏灯只能照亮一个人，而一个社区，可以照亮一座城。",
   "I started the Youth Venture Alliance. No family name behind me, no head start — just enough stubbornness to connect a thousand high school founders who wanted to build something that mattered.":
